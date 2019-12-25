@@ -2,6 +2,21 @@ from typing import List, Callable, Tuple, Dict
 from bisect import bisect
 
 
+class OneTimeCancelFunction:
+    """
+    A one time cancellation function
+    """
+    def __init__(self, cancel: Callable):
+        self.cancelled: bool = False
+        self.__cancel = cancel
+
+    def run_cancel(self):
+        if self.cancelled:
+            return
+        self.cancelled = True
+        self.__cancel()
+
+
 class UndoManager:
     """
     Allows for actions to be undone / rolled back to certain points.
@@ -19,6 +34,17 @@ class UndoManager:
         self.__redo_actions: List[Callable] = []
 
         # A dictionary to remember locations in the undo history by name
+        self.__labels: Dict[str, List[int]] = dict()
+
+    def reset(self):
+        """
+        Reset the undo manager so no undo commands are left in history
+        :return: nothing
+        """
+        self.__current_index: int = 0
+        self.enabled: bool = True
+        self.__undo_actions: List[Callable] = []
+        self.__redo_actions: List[Callable] = []
         self.__labels: Dict[str, List[int]] = dict()
 
     def register(self, undo: Callable, redo: Callable):
@@ -42,6 +68,16 @@ class UndoManager:
         self.__redo_actions.append(redo)
 
         self.__current_index += 1
+
+    def register_cancel(self, cancel: Callable):
+        """
+        Registers a function to "cancel" an action. This ensures an action is cancelled just once
+        on undo, and it is never redone.
+        :param cancel: the cancel function to invoke
+        :return: nothing
+        """
+        canceller = OneTimeCancelFunction(cancel)
+        self.register(lambda: canceller.run_cancel, lambda: True)
 
     def save_position(self, label: str):
         """

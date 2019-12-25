@@ -3,7 +3,7 @@ from time import time
 import pygame
 from pygame.rect import Rect
 
-from animator import Animator
+from animator import Animator, Animation
 from colours import  GREEN
 from coordinate import Coordinate
 from direction import Direction
@@ -49,14 +49,15 @@ class CratePiece(Piece):
         if coordinate_change.y < 0:
             self.animation_direction = Direction.up
 
-        self.animator.add_animation(self.check_animation)
+        animation = Animation(self.check_animation, self.cancel_animation)
+        self.animator.add_animation(animation)
         self.animation_start = time()
         self.animation_percentage = 0
 
         if any(p for p in self.grid[self.coordinate] if type(p) == GoalPiece):
-            self.resources.crate_success_sound.play()
+            self.resources.music_player.play_crate_moved_onto_goal()
         else:
-            self.resources.crate_sound.play()
+            self.resources.music_player.play_crate_slide()
         return True
 
     def check_animation(self):
@@ -66,6 +67,10 @@ class CratePiece(Piece):
             return True
         self.animation_percentage = (now - self.animation_start) / WALK_SPEED
         return False
+
+    def cancel_animation(self):
+        self.animation_start = 0
+        self.animation_percentage = 0
 
     def draw(self, rect: pygame.Rect):
         image = self.resources.crate_image

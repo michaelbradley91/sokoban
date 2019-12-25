@@ -14,6 +14,7 @@ from direction import Direction, direction_sorter, direction_to_coordinate, try_
 from grid import Grid
 from map_reader import read_map
 from maps.maps import MAPS
+from music_player import initialise_mixer
 from pieces.crate import CratePiece
 from pieces.goal import GoalPiece
 from pieces.piece_draw_order import PIECE_DRAW_ORDER
@@ -38,7 +39,7 @@ class App:
         return not self.map_won and not self.animator.animating()
 
     def on_init(self):
-        pygame.mixer.init(buffer=128)
+        initialise_mixer()
         pygame.init()
         pygame.mixer.music.load("resources/Puzzle-Dreams-3.mp3")
         pygame.mixer.music.play(-1)
@@ -46,13 +47,12 @@ class App:
         display = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE)
         self._running = True
 
-        self.resources = Resources(display)
+        self.resources = Resources(self.undo_manager, display)
         self.init_map(MAPS[0])
         return True
 
     def init_map(self, map: List[List[str]]):
         self.map_won = False
-        self.undo_manager = UndoManager()
         self.animator = Animator(self.undo_manager)
         self.undo_manager.enabled = False
         self.grid = read_map(self.undo_manager, self.resources, self.animator, map)
@@ -187,7 +187,7 @@ class App:
             if not any([p for p in self.grid[crate.coordinate] if type(p) == GoalPiece]):
                 self.map_won = False
         if self.map_won:
-            pygame.mixer.Channel(1).play(self.resources.win_sound)
+            self.resources.music_player.play_you_win()
 
     def on_clean_up(self):
         pygame.quit()

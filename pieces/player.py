@@ -2,7 +2,7 @@ from time import time
 import pygame
 from pygame.rect import Rect
 
-from animator import Animator
+from animator import Animator, Animation
 from colours import YELLOW, BLACK
 from coordinate import Coordinate
 from direction import Direction
@@ -58,7 +58,8 @@ class PlayerPiece(Piece):
         if not super().move(coordinate):
             return False
 
-        self.animator.add_animation(self.check_animation)
+        animation = Animation(self.check_animation, self.cancel_animation)
+        self.animator.add_animation(animation)
         self.animation_start = time()
         self.animation_percentage = 0
         self.animation_phase = 0
@@ -73,6 +74,11 @@ class PlayerPiece(Piece):
         self.animation_percentage = (now - self.animation_start) / WALK_SPEED
         self.animation_phase = int(((now - self.animation_start) * 1000) / ANIMATION_SPEED) % 3
         return False
+
+    def cancel_animation(self):
+        self.animation_start = 0
+        self.animation_percentage = 0
+        self.animation_phase = 0
 
     def draw(self, rect: pygame.Rect):
         if not self.animation_start:
