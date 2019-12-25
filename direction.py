@@ -30,6 +30,23 @@ def try_get_move_from_key(pressed_keys: Dict[int, bool]) -> Optional[Direction]:
     return None
 
 
+def coordinate_change_to_direction(coordinate_change: Coordinate) -> Direction:
+    """
+    Calculate the direction of a change. This assumes the change is only in one direction
+    :param coordinate_change:  the coordinate change
+    :return: the direction of the change
+    """
+    if coordinate_change.x > 0:
+        return Direction.right
+    if coordinate_change.x < 0:
+        return Direction.left
+    if coordinate_change.y > 0:
+        return Direction.down
+    if coordinate_change.y < 0:
+        return Direction.up
+    raise ValueError("No change so no direction!")
+
+
 def direction_to_coordinate(direction: Direction) -> Coordinate:
     """
     Get a unit coordinate which, when added, moves another coordinate in the given direction.

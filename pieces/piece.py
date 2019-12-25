@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple
 
 import pygame
 import uuid
@@ -33,7 +33,7 @@ class Piece(ABC):
         return self.coordinate.y
 
     @abstractmethod
-    def draw(self, rect: pygame.Rect):
+    def draw(self, grid_offset: Tuple[int, int], rect: pygame.Rect):
         pass
 
     def move(self, coordinate: Coordinate) -> bool:
@@ -43,6 +43,9 @@ class Piece(ABC):
         :param coordinate: the coordinate to move onto
         :return: False if this piece was unable to move. True otherwise.
         """
+        if coordinate == self.coordinate:
+            return False
+
         label = str(uuid.uuid4())
         self.undo_manager.save_position(label)
         for piece in self.grid[coordinate]:

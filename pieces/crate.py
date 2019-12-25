@@ -1,8 +1,10 @@
 from time import time
+from typing import Tuple, Optional
 
 import pygame
 from pygame.rect import Rect
 
+from LinearAnimation import LinearAnimation
 from animator import Animator, Animation
 from colours import  GREEN
 from coordinate import Coordinate
@@ -15,15 +17,18 @@ from resources import scale, Resources
 from undo import UndoManager
 
 
+class CrateAnimation(LinearAnimation):
+    def __init__(self, resources: Resources, start: Coordinate, finish: Coordinate):
+        super().__init__(start, finish, [resources.crate_image], WALK_SPEED, 1)
+
+
 class CratePiece(Piece):
     """
     A piece representing a crate, which needs to be pushed onto a goal.
     """
     def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator, resources: Resources):
         super().__init__(grid, undo_manager, animator, resources)
-        self.animation_direction = Direction.left
-        self.animation_start = 0
-        self.animation_percentage = 0
+        self.animation: Optional[CrateAnimation] = None
 
     def react_to_piece_move(self, piece: "Piece") -> bool:
         """
@@ -36,6 +41,7 @@ class CratePiece(Piece):
         return self.move(new_coordinate)
 
     def move(self, coordinate: Coordinate):
+        old_coordinate = self.coordinate
         coordinate_change = coordinate - self.coordinate
         if not super().move(coordinate):
             return False
@@ -49,10 +55,8 @@ class CratePiece(Piece):
         if coordinate_change.y < 0:
             self.animation_direction = Direction.up
 
-        animation = Animation(self.check_animation, self.cancel_animation)
-        self.animator.add_animation(animation)
-        self.animation_start = time()
-        self.animation_percentage = 0
+        self.animation = CrateAnimation(self.resources, old_coordinate, coordinate)
+        self.animator.add_animation(self.animation)
 
         if any(p for p in self.grid[self.coordinate] if type(p) == GoalPiece):
             self.resources.music_player.play_crate_moved_onto_goal()
@@ -60,35 +64,10 @@ class CratePiece(Piece):
             self.resources.music_player.play_crate_slide()
         return True
 
-    def check_animation(self):
-        now = time()
-        if now - self.animation_start >= WALK_SPEED:
-            self.animation_start = 0
-            return True
-        self.animation_percentage = (now - self.animation_start) / WALK_SPEED
-        return False
-
-    def cancel_animation(self):
-        self.animation_start = 0
-        self.animation_percentage = 0
-
-    def draw(self, rect: pygame.Rect):
-        image = self.resources.crate_image
-
-        if not self.animation_start:
-            self.resources.display.blit(scale(rect, image), rect)
+    def draw(self, grid_offset: Tuple[int, int], rect: pygame.Rect):
+        if not self.animation or self.animation.is_finished:
+            self.resources.display.blit(scale(rect, self.resources.crate_image), rect)
             return
 
-        # Draw at the partial location
-        if self.animation_direction in [Direction.left, Direction.right]:
-            x_distance = (1 - self.animation_percentage) * rect.width * (1 if self.animation_direction == Direction.left else -1)
-            y_distance = 0
-        else:
-            y_distance = (1 - self.animation_percentage) * rect.height * (1 if self.animation_direction == Direction.up else -1)
-            x_distance = 0
+        self.animation.draw(self.resources.display, grid_offset, rect.width)
 
-        new_rect = Rect(int(rect.x + x_distance),
-                        int(rect.y + y_distance),
-                        int(rect.width),
-                        int(rect.height))
-        self.resources.display.blit(scale(new_rect, image), new_rect)

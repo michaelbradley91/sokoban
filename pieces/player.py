@@ -1,21 +1,31 @@
 from time import time
+from typing import Optional, Tuple
+
 import pygame
 from pygame.rect import Rect
 
+from LinearAnimation import LinearAnimation
 from animator import Animator, Animation
 from colours import YELLOW, BLACK
 from coordinate import Coordinate
-from direction import Direction
+from direction import Direction, coordinate_change_to_direction
 from grid import Grid
 from pieces.piece import Piece
 from resources import Resources, scale
 from undo import UndoManager
 
 
-# Seconds per square
-WALK_SPEED = 0.3
+# Seconds per square in milliseconds
+WALK_SPEED = 300
 # Animation speed in milliseconds
 ANIMATION_SPEED = 100
+
+
+class PlayerAnimation(LinearAnimation):
+    def __init__(self, resources: Resources, start: Coordinate, finish: Coordinate):
+        direction = coordinate_change_to_direction(finish - start)
+        images = resources.get_player_images(direction)
+        super().__init__(start, finish, images, WALK_SPEED, ANIMATION_SPEED)
 
 
 class PlayerPiece(Piece):
@@ -25,9 +35,7 @@ class PlayerPiece(Piece):
     def __init__(self, grid: Grid, undo_manager: UndoManager, animator: Animator, resources: Resources):
         super().__init__(grid, undo_manager, animator, resources)
         self.direction = Direction.left
-        self.animation_start = 0
-        self.animation_percentage = 0
-        self.animation_phase = 0
+        self.animation: Optional[PlayerAnimation] = None
 
     def react_to_piece_move(self, piece: "Piece") -> bool:
         """
@@ -39,17 +47,11 @@ class PlayerPiece(Piece):
         def set_direction(direction: Direction):
             self.direction = direction
 
+        old_coordinate = self.coordinate
         coordinate_change = coordinate - self.coordinate
 
         old_direction = self.direction
-        if coordinate_change.x > 0:
-            self.direction = Direction.right
-        if coordinate_change.x < 0:
-            self.direction = Direction.left
-        if coordinate_change.y > 0:
-            self.direction = Direction.down
-        if coordinate_change.y < 0:
-            self.direction = Direction.up
+        self.direction = coordinate_change_to_direction(coordinate_change)
         new_direction = self.direction
 
         if new_direction != old_direction:
@@ -58,45 +60,15 @@ class PlayerPiece(Piece):
         if not super().move(coordinate):
             return False
 
-        animation = Animation(self.check_animation, self.cancel_animation)
-        self.animator.add_animation(animation)
-        self.animation_start = time()
-        self.animation_percentage = 0
-        self.animation_phase = 0
+        self.animation = PlayerAnimation(self.resources, old_coordinate, coordinate)
+        self.animator.add_animation(self.animation)
 
         return True
 
-    def check_animation(self):
-        now = time()
-        if now - self.animation_start >= WALK_SPEED:
-            self.animation_start = 0
-            return True
-        self.animation_percentage = (now - self.animation_start) / WALK_SPEED
-        self.animation_phase = int(((now - self.animation_start) * 1000) / ANIMATION_SPEED) % 3
-        return False
-
-    def cancel_animation(self):
-        self.animation_start = 0
-        self.animation_percentage = 0
-        self.animation_phase = 0
-
-    def draw(self, rect: pygame.Rect):
-        if not self.animation_start:
-            image = self.resources.get_player_image(self.direction, 0)
+    def draw(self, grid_offset: Tuple[int, int], rect: pygame.Rect):
+        if not self.animation or self.animation.is_finished:
+            image = self.resources.get_player_images(self.direction)[0]
             self.resources.display.blit(scale(rect, image), rect)
             return
 
-        # Draw at the partial location
-        if self.direction in [Direction.left, Direction.right]:
-            x_distance = (1 - self.animation_percentage) * rect.width * (1 if self.direction == Direction.left else -1)
-            y_distance = 0
-        else:
-            y_distance = (1 - self.animation_percentage) * rect.height * (1 if self.direction == Direction.up else -1)
-            x_distance = 0
-
-        new_rect = Rect(int(rect.x + x_distance),
-                        int(rect.y + y_distance),
-                        int(rect.width),
-                        int(rect.height))
-        image = self.resources.get_player_image(self.direction, self.animation_phase)
-        self.resources.display.blit(scale(new_rect, image), new_rect)
+        self.animation.draw(self.resources.display, grid_offset, rect.width)

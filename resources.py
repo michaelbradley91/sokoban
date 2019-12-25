@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, Optional
+from typing import Dict, Tuple, Optional, List
 
 import pygame
 from pygame.font import FontType, Font
@@ -97,13 +97,13 @@ class Resources:
     def wall_image(self) -> pygame.SurfaceType:
         return self.tiles2[1, 1]
 
-    def get_player_image(self, facing_direction: Direction, phase: int) -> pygame.SurfaceType:
+    def get_player_images(self, facing_direction: Direction) -> List[pygame.SurfaceType]:
         if facing_direction == Direction.left:
-            return self.tiles3[3 + phase, 6]
+            return [self.tiles3[3 + i, 6] for i in range(0, 3)]
         if facing_direction == Direction.right:
-            return self.tiles3[0 + phase, 6]
+            return [self.tiles3[i, 6] for i in range(0, 3)]
         if facing_direction == Direction.up:
-            return self.tiles3[3 + phase, 4]
+            return [self.tiles3[3 + i, 4] for i in range(0, 3)]
         if facing_direction == Direction.down:
-            return self.tiles3[0 + phase, 4]
+            return [self.tiles3[i, 4] for i in range(0, 3)]
         raise ValueError("Unknown direction")

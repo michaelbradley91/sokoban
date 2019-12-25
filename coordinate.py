@@ -1,3 +1,7 @@
+from math import sqrt
+from typing import Tuple
+
+
 class Coordinate:
     def __init__(self, x: int, y: int):
         self.__x = x
@@ -10,6 +14,18 @@ class Coordinate:
     @property
     def y(self):
         return self.__y
+
+    def normalise(self) -> Tuple[float, float]:
+        """
+        When considering this point like a vector, normalise x and y so the length
+        is about 1. Returns (0, 0) if the coordinate is (0, 0)
+        :return: the normalised vector as a tuple
+        """
+        if self.x == 0 and self.y == 0:
+            return 0, 0
+
+        factor = sqrt((self.__x * self.__x) + (self.__y * self.__y))
+        return self.__x / factor, self.__y / factor
 
     def __iter__(self):
         return iter([self.x, self.y])

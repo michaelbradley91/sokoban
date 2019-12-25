@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import pygame
 
 from colours import WHITE
@@ -15,5 +17,5 @@ class NothingPiece(Piece):
         """
         return True
 
-    def draw(self, rect: pygame.Rect):
+    def draw(self, grid_offset: Tuple[int, int], rect: pygame.Rect):
         self.resources.display.blit(scale(rect, self.resources.floor_image), rect)

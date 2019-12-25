@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import pygame
 
 from colours import RED
@@ -15,5 +17,5 @@ class GoalPiece(Piece):
         """
         return True
 
-    def draw(self, rect: pygame.Rect):
+    def draw(self, grid_offset: Tuple[int, int], rect: pygame.Rect):
         self.resources.display.blit(scale(rect, self.resources.goal_image), rect)

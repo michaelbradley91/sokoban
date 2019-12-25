@@ -165,7 +165,7 @@ class App:
                             self.grid_offset[1] + self.square_size * piece.coordinate.y,
                             self.square_size,
                             self.square_size)
-                piece.draw(rect)
+                piece.draw(self.grid_offset, rect)
 
         if self.map_won:
             you_win: pygame.SurfaceType = self.resources.you_win_font.render("You win!", True, pygame.Color('black'))
