@@ -17,5 +17,5 @@ class NothingPiece(Piece):
         """
         return True
 
-    def draw(self, grid_offset: Tuple[int, int], rect: pygame.Rect):
-        self.resources.display.blit(scale(rect, self.resources.floor_image), rect)
+    def draw(self, grid_offset: Tuple[int, int], square_size: int):
+        self.draw_at_coordinate(grid_offset, square_size, self.coordinate, self.resources.floor_image)

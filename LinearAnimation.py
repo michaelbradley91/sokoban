@@ -108,7 +108,7 @@ class LinearAnimation(Animation):
         new_y = grid_offset[1] + int(position[1] * square_size)
         new_rect = Rect((new_x, new_y), (square_size, square_size))
         image = self.status.image
-        display.blit(scale(new_rect, image), new_rect)
+        display.blit(scale((square_size, square_size), image), new_rect)
 
 
     @property

@@ -65,10 +65,9 @@ class PlayerPiece(Piece):
 
         return True
 
-    def draw(self, grid_offset: Tuple[int, int], rect: pygame.Rect):
+    def draw(self, grid_offset: Tuple[int, int], square_size: int):
         if not self.animation or self.animation.is_finished:
             image = self.resources.get_player_images(self.direction)[0]
-            self.resources.display.blit(scale(rect, image), rect)
-            return
-
-        self.animation.draw(self.resources.display, grid_offset, rect.width)
+            self.draw_at_coordinate(grid_offset, square_size, self.coordinate, image)
+        else:
+            self.animation.draw(self.resources.display, grid_offset, square_size)

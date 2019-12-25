@@ -14,5 +14,5 @@ class WallPiece(Piece):
     def react_to_piece_move(self, piece: "Piece") -> bool:
         return False
 
-    def draw(self, grid_offset: Tuple[int, int], rect: pygame.Rect):
-        self.resources.display.blit(scale(rect, self.resources.wall_image), rect)
+    def draw(self, grid_offset: Tuple[int, int], square_size: int):
+        self.draw_at_coordinate(grid_offset, square_size, self.coordinate, self.resources.wall_image)

@@ -4,9 +4,11 @@ from typing import TYPE_CHECKING, Tuple
 import pygame
 import uuid
 
+from pygame.rect import Rect
+
 from animator import Animator
 from coordinate import Coordinate
-from resources import Resources
+from resources import Resources, scale
 from undo import UndoManager
 
 if TYPE_CHECKING:
@@ -33,8 +35,18 @@ class Piece(ABC):
         return self.coordinate.y
 
     @abstractmethod
-    def draw(self, grid_offset: Tuple[int, int], rect: pygame.Rect):
+    def draw(self, grid_offset: Tuple[int, int], square_size: int):
         pass
+
+    def draw_at_coordinate(self, grid_offset: Tuple[int, int], square_size: int, coordinate: Coordinate,
+                           image: pygame.SurfaceType):
+        """
+        Draw an image at the given coordinate.
+        """
+        rect = Rect(grid_offset[0] + (coordinate.x * square_size),
+                    grid_offset[1] + (coordinate.y * square_size),
+                    square_size, square_size)
+        self.resources.display.blit(scale((square_size, square_size), image), rect)
 
     def move(self, coordinate: Coordinate) -> bool:
         """

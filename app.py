@@ -161,11 +161,7 @@ class App:
 
         for piece_type in PIECE_DRAW_ORDER:
             for piece in self.grid.get_pieces_of_type(piece_type):
-                rect = Rect(self.grid_offset[0] + self.square_size * piece.coordinate.x,
-                            self.grid_offset[1] + self.square_size * piece.coordinate.y,
-                            self.square_size,
-                            self.square_size)
-                piece.draw(self.grid_offset, rect)
+                piece.draw(self.grid_offset, self.square_size)
 
         if self.map_won:
             you_win: pygame.SurfaceType = self.resources.you_win_font.render("You win!", True, pygame.Color('black'))

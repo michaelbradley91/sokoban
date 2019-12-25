@@ -8,8 +8,8 @@ from direction import Direction
 from music_player import MusicPlayer
 
 
-def scale(rect: pygame.Rect, surface: pygame.SurfaceType) -> pygame.SurfaceType:
-    return pygame.transform.scale(surface, rect.size)
+def scale(size, surface: pygame.SurfaceType) -> pygame.SurfaceType:
+    return pygame.transform.scale(surface, size)
 
 
 def dim(surface: pygame.SurfaceType, amount: int):

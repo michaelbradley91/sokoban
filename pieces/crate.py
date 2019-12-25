@@ -64,10 +64,9 @@ class CratePiece(Piece):
             self.resources.music_player.play_crate_slide()
         return True
 
-    def draw(self, grid_offset: Tuple[int, int], rect: pygame.Rect):
+    def draw(self, grid_offset: Tuple[int, int], square_size: int):
         if not self.animation or self.animation.is_finished:
-            self.resources.display.blit(scale(rect, self.resources.crate_image), rect)
-            return
-
-        self.animation.draw(self.resources.display, grid_offset, rect.width)
+            self.draw_at_coordinate(grid_offset, square_size, self.coordinate, self.resources.crate_image)
+        else:
+            self.animation.draw(self.resources.display, grid_offset, square_size)
 
