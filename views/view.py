@@ -6,6 +6,7 @@ from pygame.event import EventType
 
 from animator import Animator
 from music_player import MusicPlayer
+from navigator import Navigator
 from resources import Resources
 from undo import UndoManager
 import typing_inspect
@@ -15,13 +16,15 @@ S = TypeVar('S')
 
 
 class View(ABC, Generic[T, S]):
-    def __init__(self, undo_manager: UndoManager, animator: Animator, music_player: MusicPlayer, resources: Resources):
+    def __init__(self, undo_manager: UndoManager, animator: Animator, music_player: MusicPlayer,
+                 resources: Resources, navigator: Navigator):
         self.parameters: Optional[T] = None
         self.model: Optional[S] = None
         self.undo_manager = undo_manager
         self.animator = animator
         self.music_player = music_player
         self.resources = resources
+        self.navigator = navigator
 
     def initialise(self, parameters: T):
         """ Initialise the view by saving the parameters and resetting various resources """
@@ -30,8 +33,10 @@ class View(ABC, Generic[T, S]):
         self.undo_manager.reset()
         self.animator.reset()
         self.music_player.reset()
-        
-        self.model: S = type(S)(self)
+
+        # Note: this only works if the view is an immediate subclass of View
+        model_type = typing_inspect.get_args(typing_inspect.get_generic_bases(type(self))[0])[1]
+        self.model: S = model_type(self)
 
         self.init()
 
@@ -46,6 +51,11 @@ class View(ABC, Generic[T, S]):
     @abstractmethod
     def init(self):
         """ View specific initialisation """
+        pass
+
+    @abstractmethod
+    def close(self):
+        """ Close any view specific resources """
         pass
 
     @abstractmethod

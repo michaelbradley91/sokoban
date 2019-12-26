@@ -6,6 +6,7 @@ from pygame.time import Clock
 
 from animator import Animator
 from music_player import initialise_mixer, MusicPlayer
+from navigator import Navigator
 from resources import Resources
 from undo import UndoManager
 from views.map_view import MapView, MapViewParameters
@@ -14,7 +15,7 @@ from views.view import View
 DEFAULT_WINDOW_SIZE = 640, 704
 
 
-class App:
+class App(Navigator):
     def __init__(self):
         self._keep_running = True
         self.resources: Optional[Resources] = None
@@ -35,11 +36,20 @@ class App:
 
         self.resources = Resources(display)
         self.music_player = MusicPlayer(self.resources, self.undo_manager)
-        self.current_view = MapView(self.undo_manager, self.animator, self.music_player, self.resources)
-        self.current_view.initialise(MapViewParameters(map_index=0))
+        self.go_to_view(MapView, MapViewParameters(map_index=0))
         return True
 
+    def go_to_view(self, view: type, parameters: any):
+        if self.current_view:
+            self.current_view.close()
+
+        self.current_view: View = view(self.undo_manager, self.animator, self.music_player, self.resources, self)
+        self.current_view.initialise(parameters)
+
     def on_events(self, events: List[EventType]):
+        if not events:
+            return
+
         for event in events:
             # Quit the game
             if event.type == pygame.QUIT:
@@ -63,6 +73,7 @@ class App:
         self.current_view.on_events(events)
 
     def pre_event_loop(self):
+        self.animator.run_animations()
         self.current_view.pre_event_loop()
 
     def post_event_loop(self):
@@ -70,6 +81,7 @@ class App:
 
     def draw(self):
         self.current_view.draw()
+        pygame.display.update()
 
     @staticmethod
     def on_clean_up():

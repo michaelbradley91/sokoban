@@ -25,7 +25,7 @@ class MapViewModel(ViewModel[MapViewParameters]):
     def __init__(self, view: "MapView"):
         super().__init__(view)
 
-        map_definition = MAPS[self.parameters]
+        map_definition = MAPS[self.parameters.map_index]
 
         self.undo_manager.enabled = False
         self.grid = read_map(self.undo_manager, self.resources, self.animator, self.music_player, map_definition)
@@ -72,14 +72,12 @@ class MapView(View[MapViewParameters, MapViewModel]):
                 return
 
     def on_event(self, event: EventType):
-        if not self.model.players_can_move:
-            return True
-
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_u:
-                self.undo_manager.undo(PLAYER_MOVE_UNDO_LABEL)
-            if event.key == pygame.K_r:
-                self.undo_manager.redo(PLAYER_MOVE_UNDO_LABEL)
+            if self.model.players_can_move:
+                if event.key == pygame.K_u:
+                    self.undo_manager.undo(PLAYER_MOVE_UNDO_LABEL)
+                if event.key == pygame.K_r:
+                    self.undo_manager.redo(PLAYER_MOVE_UNDO_LABEL)
 
             map_index = -1
             if event.key == pygame.K_1:
@@ -113,8 +111,8 @@ class MapView(View[MapViewParameters, MapViewModel]):
                 map_index += 40
 
             if 0 <= map_index < len(MAPS):
-                # TODO navigate to map_index (change view)!
-                pass
+                self.navigator.go_to_view(MapView, MapViewParameters(map_index=map_index))
+                return False
 
             # Only allow one key to be processed at once
             return False
@@ -128,8 +126,6 @@ class MapView(View[MapViewParameters, MapViewModel]):
 
         if self.model.map_won:
             self.draw_you_win()
-
-        pygame.display.update()
 
     def draw_you_win(self):
         """
@@ -145,7 +141,7 @@ class MapView(View[MapViewParameters, MapViewModel]):
 
         centre = self.resources.display.get_width() / 2, self.resources.display.get_height() / 2
         x = centre[0] - (you_win.get_width() // 2)
-        y_centre = self.grid_offset[1] + ((self.grid.height // 2) * self.grid_square_size) + (
+        y_centre = self.grid_offset[1] + (((self.grid.height - 1) // 2) * self.grid_square_size) + (
                     self.grid_square_size // 2)
         y = y_centre - (you_win.get_height() // 2)
 
@@ -167,6 +163,9 @@ class MapView(View[MapViewParameters, MapViewModel]):
 
         if player_moved:
             self.undo_manager.save_position("player_move")
+
+    def close(self):
+        pass
 
     @property
     def grid_size(self) -> Tuple[int, int]:

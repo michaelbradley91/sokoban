@@ -175,7 +175,7 @@ HAZEL_CUSTOM_MAP3 = [
     ['W', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'W'],
     ['W', 'N', 'N', 'N', 'N', 'B', 'B', 'B', 'N', 'G', 'N', 'N', 'W'],
     ['W', 'N', 'N', 'G', 'N', 'W', 'W', 'W', 'P', 'N', 'N', 'N', 'W'],
-    ['W', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'W'],
+    ['W', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'G', 'N', 'W'],
     ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
 ]
 
@@ -203,6 +203,18 @@ HAZEL_CUSTOM_MAP5 = [
     ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
 ]
 
+HAZEL_CUSTOM_MAP6 = [
+    ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
+    ['W', 'N', 'N', 'N', 'N', 'N', 'G', 'N', 'N', 'W'],
+    ['W', 'N', 'N', 'G', 'N', 'P', 'N', 'N', 'N', 'W'],
+    ['W', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'W'],
+    ['W', 'N', 'B', 'N', 'N', 'N', 'N', 'N', 'N', 'W'],
+    ['W', 'N', 'N', 'N', 'N', 'N', 'N', 'B', 'N', 'W'],
+    ['W', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'W'],
+    ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
+]
+
 MAPS = [TUTORIAL_MAP, TUTORIAL_ANGLED_MAP, TWO_CRATE_MAP, BASIC_MAP_1, HAZEL_MAP,
         SPIRAL_MAP, STAR_MAP, BASIC_MAP_2, BIG_SPIRAL_MAP, MIRROR_MAP, HARD_MAP, HAZEL_CUSTOM_MAP,
-        HAZEL_CUSTOM_MAP2, HAZEL_CUSTOM_MAP3, HAZEL_CUSTOM_MAP4, HAZEL_CUSTOM_MAP5]
+        HAZEL_CUSTOM_MAP2, HAZEL_CUSTOM_MAP3, HAZEL_CUSTOM_MAP4, HAZEL_CUSTOM_MAP5,
+        HAZEL_CUSTOM_MAP6]
