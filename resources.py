@@ -46,7 +46,7 @@ class Resources:
     A collection for all the games resources
     """
     def __init__(self, display: pygame.SurfaceType):
-        self.display = display
+        self.display: pygame.SurfaceType = display
         self.tiles1 = load_tile_set("resources/sokoban_tilesheet.png", 128)
         self.tiles2 = load_tile_set("resources/sokoban_tilesheet2.png", 64, width=6, height=6)
         self.tiles3 = load_tile_set("resources/sokoban_tilesheet3.png", 128)
