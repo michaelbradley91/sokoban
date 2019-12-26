@@ -8,6 +8,7 @@ from pygame.rect import Rect
 
 from animator import Animator
 from coordinate import Coordinate
+from music_player import MusicPlayer
 from resources import Resources, scale
 from undo import UndoManager
 
@@ -16,10 +17,12 @@ if TYPE_CHECKING:
 
 
 class Piece(ABC):
-    def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator, resources: Resources):
+    def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator,
+                 music_player: MusicPlayer, resources: Resources):
         self.grid = grid
         self.undo_manager = undo_manager
         self.animator = animator
+        self.music_player = music_player
         self.resources = resources
 
     @property

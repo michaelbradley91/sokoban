@@ -1,19 +1,14 @@
-from time import time
 from typing import Tuple, Optional
 
-import pygame
-from pygame.rect import Rect
-
 from LinearAnimation import LinearAnimation
-from animator import Animator, Animation
-from colours import  GREEN
+from animator import Animator
 from coordinate import Coordinate
-from direction import Direction
 from grid import Grid
+from music_player import MusicPlayer
 from pieces.goal import GoalPiece
 from pieces.piece import Piece
-from pieces.player import PlayerPiece, WALK_SPEED
-from resources import scale, Resources
+from pieces.player import WALK_SPEED
+from resources import Resources
 from undo import UndoManager
 
 
@@ -26,8 +21,10 @@ class CratePiece(Piece):
     """
     A piece representing a crate, which needs to be pushed onto a goal.
     """
-    def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator, resources: Resources):
-        super().__init__(grid, undo_manager, animator, resources)
+
+    def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator,
+                 music_player: MusicPlayer, resources: Resources):
+        super().__init__(grid, undo_manager, animator, music_player, resources)
         self.animation: Optional[CrateAnimation] = None
 
     def react_to_piece_move(self, piece: "Piece") -> bool:
@@ -42,26 +39,16 @@ class CratePiece(Piece):
 
     def move(self, coordinate: Coordinate):
         old_coordinate = self.coordinate
-        coordinate_change = coordinate - self.coordinate
         if not super().move(coordinate):
             return False
-
-        if coordinate_change.x > 0:
-            self.animation_direction = Direction.right
-        if coordinate_change.x < 0:
-            self.animation_direction = Direction.left
-        if coordinate_change.y > 0:
-            self.animation_direction = Direction.down
-        if coordinate_change.y < 0:
-            self.animation_direction = Direction.up
 
         self.animation = CrateAnimation(self.resources, old_coordinate, coordinate)
         self.animator.add_animation(self.animation)
 
         if any(p for p in self.grid[self.coordinate] if type(p) == GoalPiece):
-            self.resources.music_player.play_crate_moved_onto_goal()
+            self.music_player.play_crate_moved_onto_goal()
         else:
-            self.resources.music_player.play_crate_slide()
+            self.music_player.play_crate_slide()
         return True
 
     def draw(self, grid_offset: Tuple[int, int], square_size: int):

@@ -1,19 +1,14 @@
-from time import time
 from typing import Optional, Tuple
 
-import pygame
-from pygame.rect import Rect
-
 from LinearAnimation import LinearAnimation
-from animator import Animator, Animation
-from colours import YELLOW, BLACK
+from animator import Animator
 from coordinate import Coordinate
 from direction import Direction, coordinate_change_to_direction
 from grid import Grid
+from music_player import MusicPlayer
 from pieces.piece import Piece
-from resources import Resources, scale
+from resources import Resources
 from undo import UndoManager
-
 
 # Seconds per square in milliseconds
 WALK_SPEED = 300
@@ -32,8 +27,10 @@ class PlayerPiece(Piece):
     """
     A piece representing a player!
     """
-    def __init__(self, grid: Grid, undo_manager: UndoManager, animator: Animator, resources: Resources):
-        super().__init__(grid, undo_manager, animator, resources)
+
+    def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator,
+                 music_player: MusicPlayer, resources: Resources):
+        super().__init__(grid, undo_manager, animator, music_player, resources)
         self.direction = Direction.left
         self.animation: Optional[PlayerAnimation] = None
 

@@ -1,10 +1,6 @@
 from typing import Tuple
 
-import pygame
-
-from colours import GREY
 from pieces.piece import Piece
-from resources import scale, dim
 
 
 class WallPiece(Piece):

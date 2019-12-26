@@ -1,20 +1,16 @@
 from typing import Optional, Tuple, List
 
 import pygame
+from pygame.event import EventType
+from pygame.time import Clock
 
 from animator import Animator
 from colours import BLACK
-from coordinate import Coordinate
-from pygame.event import EventType
-from pygame.font import Font, SysFont
-from pygame.rect import Rect
-from pygame.time import Clock
-
 from direction import Direction, direction_sorter, direction_to_coordinate, try_get_move_from_key
 from grid import Grid
 from map_reader import read_map
 from maps.maps import MAPS
-from music_player import initialise_mixer
+from music_player import initialise_mixer, MusicPlayer
 from pieces.crate import CratePiece
 from pieces.goal import GoalPiece
 from pieces.piece_draw_order import PIECE_DRAW_ORDER
@@ -29,6 +25,7 @@ class App:
         self.map_won = False
         self.size = self.width, self.height = 640, 704
         self.resources: Optional[Resources] = None
+        self.music_player: Optional[MusicPlayer] = None
         self.undo_manager = UndoManager()
         self.animator = Animator(self.undo_manager)
         self.grid: Optional[Grid] = None
@@ -47,7 +44,8 @@ class App:
         display = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE)
         self._running = True
 
-        self.resources = Resources(self.undo_manager, display)
+        self.resources = Resources(display)
+        self.music_player = MusicPlayer(self.resources, self.undo_manager)
         self.init_map(MAPS[0])
         return True
 
@@ -55,7 +53,7 @@ class App:
         self.map_won = False
         self.animator = Animator(self.undo_manager)
         self.undo_manager.enabled = False
-        self.grid = read_map(self.undo_manager, self.resources, self.animator, map)
+        self.grid = read_map(self.undo_manager, self.resources, self.animator, self.music_player, map)
         self.undo_manager.enabled = True
         self.undo_manager.save_position("player_move")
 
@@ -183,7 +181,7 @@ class App:
             if not any([p for p in self.grid[crate.coordinate] if type(p) == GoalPiece]):
                 self.map_won = False
         if self.map_won:
-            self.resources.music_player.play_you_win()
+            self.music_player.play_you_win()
 
     def on_clean_up(self):
         pygame.quit()

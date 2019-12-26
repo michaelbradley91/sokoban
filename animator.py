@@ -26,6 +26,16 @@ class Animator:
         self.__current_animations: List[Animation] = []
         self.undo_manager = undo_manager
 
+    def reset(self):
+        """
+        Stop all running animations and clear out animations
+        :return: nothing
+        """
+        for animation in self.__current_animations:
+            animation.cancel()
+
+        self.__current_animations = []
+
     def animating(self) -> bool:
         """
         :return: True if there are any animations running. False otherwise.

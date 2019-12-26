@@ -45,7 +45,7 @@ class Resources:
     """
     A collection for all the games resources
     """
-    def __init__(self, undo_manager: UndoManager, display: pygame.SurfaceType):
+    def __init__(self, display: pygame.SurfaceType):
         self.display = display
         self.tiles1 = load_tile_set("resources/sokoban_tilesheet.png", 128)
         self.tiles2 = load_tile_set("resources/sokoban_tilesheet2.png", 64, width=6, height=6)
@@ -55,11 +55,6 @@ class Resources:
         self.__coin_sound = pygame.mixer.Sound('resources/mario coin.wav')
         self.__crate_success_sound = self.__coin_sound
         self.__win_sound = pygame.mixer.Sound('resources/Ta Da-SoundBible.com-1884170640.wav')
-        self.__music_player: MusicPlayer = MusicPlayer(self, undo_manager)
-
-    @property
-    def music_player(self):
-        return self.__music_player
 
     @property
     def you_win_font(self) -> FontType:

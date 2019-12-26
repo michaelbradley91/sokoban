@@ -2,6 +2,7 @@ from typing import List, Iterable, Dict, Set, TYPE_CHECKING
 
 from animator import Animator
 from coordinate import Coordinate
+from music_player import MusicPlayer
 
 from pieces.nothing import NothingPiece
 from resources import Resources
@@ -12,7 +13,8 @@ if TYPE_CHECKING:
 
 
 class Grid:
-    def __init__(self, undo_manager: UndoManager, animator: Animator, resources: Resources, width: int, height: int):
+    def __init__(self, undo_manager: UndoManager, animator: Animator, music_player: MusicPlayer,
+                 resources: Resources, width: int, height: int):
         self.__undo_manager = undo_manager
         self.__resources = resources
         self.__width = width
@@ -26,7 +28,7 @@ class Grid:
         self.__piece_types_to_pieces[NothingPiece] = set()
         for x in range(0, width):
             for y in range(0, height):
-                nothing = NothingPiece(self, undo_manager, animator, resources)
+                nothing = NothingPiece(self, undo_manager, animator, music_player, resources)
                 self.__coordinates_to_pieces[Coordinate(x=x, y=y)] = [nothing]
                 self.__pieces_to_coordinates[nothing] = Coordinate(x=x, y=y)
                 self.__piece_types_to_pieces[type(nothing)].add(nothing)
