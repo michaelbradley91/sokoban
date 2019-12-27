@@ -148,6 +148,9 @@ class MapView(View[MapViewParameters, MapViewModel]):
             if pygame.key.get_mods() & pygame.KMOD_CTRL and map_index >= 0:
                 map_index += 40
 
+            # Go beyond the start screen
+            map_index += 1
+
             if 0 <= map_index < len(MAPS):
                 self.navigator.go_to_view(MapView, MapViewParameters(map_index=map_index))
                 return False
