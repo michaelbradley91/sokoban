@@ -5,6 +5,7 @@ from typing import TypeVar, Generic, Optional, List
 from pygame.event import EventType
 
 from animator import Animator
+from layouts.layout import Layout, BasicLayout
 from music_player import MusicPlayer
 from navigator import Navigator
 from resources import Resources
@@ -16,8 +17,14 @@ S = TypeVar('S')
 
 
 class View(ABC, Generic[T, S]):
+    """
+    An abstract representation of a view.
+    Note: the constructor parameters are fixed. Other parameters should be provided by setting
+    the correct parameter type.
+    """
+
     def __init__(self, undo_manager: UndoManager, animator: Animator, music_player: MusicPlayer,
-                 resources: Resources, navigator: Navigator):
+                 resources: Resources, navigator: Navigator, layout: BasicLayout):
         self.parameters: Optional[T] = None
         self.model: Optional[S] = None
         self.undo_manager = undo_manager
@@ -25,6 +32,7 @@ class View(ABC, Generic[T, S]):
         self.music_player = music_player
         self.resources = resources
         self.navigator = navigator
+        self.layout = layout
 
     def initialise(self, parameters: T):
         """ Initialise the view by saving the parameters and resetting various resources """
@@ -37,7 +45,6 @@ class View(ABC, Generic[T, S]):
         # Note: this only works if the view is an immediate subclass of View
         model_type = typing_inspect.get_args(typing_inspect.get_generic_bases(type(self))[0])[1]
         self.model: S = model_type(self)
-
         self.init()
 
     @property

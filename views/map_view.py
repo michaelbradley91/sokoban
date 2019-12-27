@@ -1,18 +1,26 @@
-import pygame
-from typing import List, NamedTuple, Tuple
+from typing import List, NamedTuple, Optional
 
+import pygame
 from pygame.event import EventType
 
+from animator import Animator
 from colours import BLACK
+from coordinate import Coordinate
 from direction import Direction, direction_sorter, direction_to_coordinate, try_get_move_from_key
+from layouts.aspect_layout import AspectLayout
+from layouts.grid_layout import GridLayout
+from layouts.layout import BasicLayout
 from map_reader import read_map
 from maps.maps import MAPS
+from music_player import MusicPlayer
+from navigator import Navigator
 from pieces.crate import CratePiece
 from pieces.goal import GoalPiece
 from pieces.piece_draw_order import PIECE_DRAW_ORDER
 from pieces.player import PlayerPiece
+from resources import Resources
+from undo import UndoManager
 from views.view import View, ViewModel
-
 
 PLAYER_MOVE_UNDO_LABEL = "player_move"
 
@@ -50,8 +58,27 @@ class MapView(View[MapViewParameters, MapViewModel]):
     """
     A map view.
     """
+    def __init__(self, undo_manager: UndoManager, animator: Animator, music_player: MusicPlayer, resources: Resources,
+                 navigator: Navigator, layout: BasicLayout):
+
+        super().__init__(undo_manager, animator, music_player, resources, navigator, layout)
+        self.grid_layout: Optional[GridLayout] = None
+        self.square_layout: Optional[BasicLayout] = None
+        self.you_win_layout: Optional[BasicLayout] = None
+
     def init(self):
-        pass
+        self.square_layout = BasicLayout()
+        self.you_win_layout = BasicLayout()
+
+        self.grid_layout = GridLayout(width=self.grid.width, height=self.grid.height)
+        self.grid_layout.add_layout(self.square_layout, Coordinate(0, 0))
+        self.grid_layout.add_layout(self.you_win_layout, Coordinate(0, self.grid.height // 2),
+                                    column_span=self.grid.width)
+
+        aspect_layout = AspectLayout((self.grid.width, self.grid.height), (self.grid.width, self.grid.height))
+        aspect_layout.set_layout(self.grid_layout)
+
+        self.layout.set_layout(aspect_layout)
 
     def pre_event_loop(self):
         pass
@@ -79,6 +106,7 @@ class MapView(View[MapViewParameters, MapViewModel]):
                 if event.key == pygame.K_r:
                     self.undo_manager.redo(PLAYER_MOVE_UNDO_LABEL)
 
+            # Patch to allow changing levels without a level menu!
             map_index = -1
             if event.key == pygame.K_1:
                 map_index = 0
@@ -122,7 +150,7 @@ class MapView(View[MapViewParameters, MapViewModel]):
 
         for piece_type in PIECE_DRAW_ORDER:
             for piece in self.grid.get_pieces_of_type(piece_type):
-                piece.draw(self.grid_offset, self.grid_square_size)
+                piece.draw(self.grid_layout.bounding_rect.topleft, self.square_size)
 
         if self.model.map_won:
             self.draw_you_win()
@@ -134,16 +162,13 @@ class MapView(View[MapViewParameters, MapViewModel]):
         """
         you_win: pygame.SurfaceType = self.resources.you_win_font.render("You win!", True, pygame.Color('black'))
 
-        target_height = int(self.grid_square_size / 1.5)
+        target_height = int(self.square_size / 1.5)
         target_width = int((you_win.get_width() / you_win.get_height()) * target_height)
 
         you_win = pygame.transform.scale(you_win, (target_width, target_height))
 
-        centre = self.resources.display.get_width() / 2, self.resources.display.get_height() / 2
-        x = centre[0] - (you_win.get_width() // 2)
-        y_centre = self.grid_offset[1] + (((self.grid.height - 1) // 2) * self.grid_square_size) + (
-                    self.grid_square_size // 2)
-        y = y_centre - (you_win.get_height() // 2)
+        x = int(self.you_win_layout.bounding_rect.centerx - (you_win.get_width() // 2))
+        y = int(self.you_win_layout.bounding_rect.centery - (you_win.get_height() // 2))
 
         self.resources.display.blit(you_win, (x, y))
 
@@ -164,23 +189,12 @@ class MapView(View[MapViewParameters, MapViewModel]):
         if player_moved:
             self.undo_manager.save_position("player_move")
 
+    @property
+    def square_size(self):
+        return self.square_layout.bounding_rect.width
+
     def close(self):
         pass
-
-    @property
-    def grid_size(self) -> Tuple[int, int]:
-        return self.grid_square_size * self.grid.width, self.grid_square_size * self.grid.height
-
-    @property
-    def grid_offset(self) -> Tuple[int, int]:
-        x_offset = (self.resources.display.get_width() - (self.grid_square_size * self.grid.width)) // 2
-        y_offset = (self.resources.display.get_height() - (self.grid_square_size * self.grid.height)) // 2
-        return x_offset, y_offset
-
-    @property
-    def grid_square_size(self) -> int:
-        return min(self.resources.display.get_width() // self.grid.width,
-                   self.resources.display.get_height() // self.grid.height)
 
     @property
     def grid(self):
