@@ -5,6 +5,7 @@ from typing import TypeVar, Generic, Optional, List
 from pygame.event import EventType
 
 from animator import Animator
+from drawer import Drawer
 from layouts.layout import Layout, BasicLayout
 from music_player import MusicPlayer
 from navigator import Navigator
@@ -23,12 +24,13 @@ class View(ABC, Generic[T, S]):
     the correct parameter type.
     """
 
-    def __init__(self, undo_manager: UndoManager, animator: Animator, music_player: MusicPlayer,
+    def __init__(self, undo_manager: UndoManager, animator: Animator, drawer: Drawer, music_player: MusicPlayer,
                  resources: Resources, navigator: Navigator, layout: BasicLayout):
         self.parameters: Optional[T] = None
         self.model: Optional[S] = None
         self.undo_manager = undo_manager
         self.animator = animator
+        self.drawer = drawer
         self.music_player = music_player
         self.resources = resources
         self.navigator = navigator
@@ -109,3 +111,7 @@ class ViewModel(Generic[T]):
     @property
     def animator(self) -> Animator:
         return self.view.animator
+
+    @property
+    def drawer(self) -> Drawer:
+        return self.view.drawer

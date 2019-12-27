@@ -2,6 +2,7 @@ from typing import List
 
 from animator import Animator
 from coordinate import Coordinate
+from drawer import Drawer
 from grid import Grid
 from music_player import MusicPlayer
 from pieces.crate import CratePiece
@@ -15,6 +16,7 @@ from undo import UndoManager
 def read_map(undo_manager: UndoManager,
              resources: Resources,
              animator: Animator,
+             drawer: Drawer,
              music_player: MusicPlayer,
              custom_map: List[List[str]]) -> Grid:
     height = len(custom_map)
@@ -29,16 +31,20 @@ def read_map(undo_manager: UndoManager,
         if len(row) != width:
             raise ValueError("Maps must be rectangles")
 
-    grid = Grid(undo_manager, animator, music_player, resources, width, height)
+    grid = Grid(undo_manager, animator, drawer, music_player, resources, width, height)
     for y, row in enumerate(custom_map):
         for x, string in enumerate(row):
             if string == 'W':
-                grid.add_piece(WallPiece(grid, undo_manager, animator, music_player, resources), Coordinate(x, y))
+                grid.add_piece(
+                    WallPiece(grid, undo_manager, animator, drawer, music_player, resources), Coordinate(x, y))
             if string == 'P':
-                grid.add_piece(PlayerPiece(grid, undo_manager, animator, music_player, resources), Coordinate(x, y))
+                grid.add_piece(
+                    PlayerPiece(grid, undo_manager, animator, drawer, music_player, resources), Coordinate(x, y))
             if string == 'B':
-                grid.add_piece(CratePiece(grid, undo_manager, animator, music_player, resources), Coordinate(x, y))
+                grid.add_piece(
+                    CratePiece(grid, undo_manager, animator, drawer, music_player, resources), Coordinate(x, y))
             if string == 'G':
-                grid.add_piece(GoalPiece(grid, undo_manager, animator, music_player, resources), Coordinate(x, y))
+                grid.add_piece(
+                    GoalPiece(grid, undo_manager, animator, drawer, music_player, resources), Coordinate(x, y))
 
     return grid

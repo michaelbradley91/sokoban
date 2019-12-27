@@ -8,8 +8,9 @@ from pygame.rect import Rect
 
 from animator import Animator
 from coordinate import Coordinate
+from drawer import Drawer
 from music_player import MusicPlayer
-from resources import Resources, scale
+from resources import Resources
 from undo import UndoManager
 
 if TYPE_CHECKING:
@@ -18,10 +19,11 @@ if TYPE_CHECKING:
 
 class Piece(ABC):
     def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator,
-                 music_player: MusicPlayer, resources: Resources):
+                 drawer: Drawer, music_player: MusicPlayer, resources: Resources):
         self.grid = grid
         self.undo_manager = undo_manager
         self.animator = animator
+        self.drawer = drawer
         self.music_player = music_player
         self.resources = resources
 
@@ -41,15 +43,10 @@ class Piece(ABC):
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
         pass
 
-    def draw_at_coordinate(self, grid_offset: Tuple[int, int], square_size: int, coordinate: Coordinate,
-                           image: pygame.SurfaceType):
-        """
-        Draw an image at the given coordinate.
-        """
-        rect = Rect(grid_offset[0] + (coordinate.x * square_size),
-                    grid_offset[1] + (coordinate.y * square_size),
+    def get_rect_at_coordinate(self, grid_offset: Tuple[int, int], square_size: int):
+        return Rect(grid_offset[0] + (self.coordinate.x * square_size),
+                    grid_offset[1] + (self.coordinate.y * square_size),
                     square_size, square_size)
-        self.resources.display.blit(scale((square_size, square_size), image), rect)
 
     def move(self, coordinate: Coordinate) -> bool:
         """

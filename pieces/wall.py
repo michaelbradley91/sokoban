@@ -11,4 +11,4 @@ class WallPiece(Piece):
         return False
 
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
-        self.draw_at_coordinate(grid_offset, square_size, self.coordinate, self.resources.wall_image)
+        self.drawer.draw_wall(self.get_rect_at_coordinate(grid_offset, square_size))

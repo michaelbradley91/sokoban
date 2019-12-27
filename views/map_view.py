@@ -7,6 +7,7 @@ from animator import Animator
 from colours import BLACK
 from coordinate import Coordinate
 from direction import Direction, direction_sorter, direction_to_coordinate, try_get_move_from_key
+from drawer import Drawer
 from layouts.aspect_layout import AspectLayout
 from layouts.grid_layout import GridLayout
 from layouts.layout import BasicLayout
@@ -23,7 +24,11 @@ from resources import Resources
 from undo import UndoManager
 from views.view import View, ViewModel
 
+
+BACKGROUND_COLOUR = pygame.Color("black")
 PLAYER_MOVE_UNDO_LABEL = "player_move"
+YOU_WIN_TEXT = "You win!"
+YOU_WIN_COLOUR = pygame.Color("black")
 
 
 class MapViewParameters(NamedTuple):
@@ -37,7 +42,8 @@ class MapViewModel(ViewModel[MapViewParameters]):
         map_definition = MAPS[self.parameters.map_index]
 
         self.undo_manager.enabled = False
-        self.grid = read_map(self.undo_manager, self.resources, self.animator, self.music_player, map_definition)
+        self.grid = read_map(self.undo_manager, self.resources, self.animator, self.drawer,
+                             self.music_player, map_definition)
         self.undo_manager.enabled = True
         self.undo_manager.save_position(PLAYER_MOVE_UNDO_LABEL)
         self.map_won = False
@@ -59,10 +65,10 @@ class MapView(View[MapViewParameters, MapViewModel]):
     """
     A map view.
     """
-    def __init__(self, undo_manager: UndoManager, animator: Animator, music_player: MusicPlayer, resources: Resources,
-                 navigator: Navigator, layout: BasicLayout):
+    def __init__(self, undo_manager: UndoManager, animator: Animator, drawer: Drawer, music_player: MusicPlayer,
+                 resources: Resources, navigator: Navigator, layout: BasicLayout):
 
-        super().__init__(undo_manager, animator, music_player, resources, navigator, layout)
+        super().__init__(undo_manager, animator, drawer, music_player, resources, navigator, layout)
         self.grid_layout: Optional[GridLayout] = None
         self.square_layout: Optional[BasicLayout] = None
         self.you_win_layout: Optional[BasicLayout] = None
@@ -72,9 +78,10 @@ class MapView(View[MapViewParameters, MapViewModel]):
         # Build the layout for the page
         self.square_layout = BasicLayout()
         self.you_win_layout = BasicLayout()
-        self.you_win: pygame.SurfaceType = self.resources.you_win_font.render("You win!", True, pygame.Color('black'))
 
-        aspect_layout = AspectLayout(self.you_win.get_size())
+        you_win_surface = self.resources.you_win_font.get_surface(YOU_WIN_TEXT, YOU_WIN_COLOUR)
+
+        aspect_layout = AspectLayout(you_win_surface.get_size())
         aspect_layout.set_layout(self.you_win_layout)
 
         margin_layout = MarginLayout((0, 1 / 5))
@@ -160,7 +167,7 @@ class MapView(View[MapViewParameters, MapViewModel]):
             return False
 
     def draw(self):
-        self.resources.display.fill(BLACK)
+        self.drawer.draw_background(BACKGROUND_COLOUR)
 
         for piece_type in PIECE_DRAW_ORDER:
             for piece in self.grid.get_pieces_of_type(piece_type):
@@ -174,8 +181,7 @@ class MapView(View[MapViewParameters, MapViewModel]):
         Draw the you win text!
         :return: nothing
         """
-        you_win = pygame.transform.scale(self.you_win, self.you_win_layout.bounding_rect.size)
-        self.resources.display.blit(you_win, self.you_win_layout.bounding_rect.topleft)
+        self.drawer.draw_you_win(YOU_WIN_TEXT, YOU_WIN_COLOUR, self.you_win_layout.bounding_rect)
 
     def move_players(self, direction: Direction):
         """

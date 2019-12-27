@@ -2,13 +2,14 @@ from typing import Optional, List, Tuple
 
 import pygame
 from pygame.event import EventType
-from pygame.rect import Rect
 from pygame.time import Clock
 
 from animator import Animator
-from layouts.layout import Layout, BasicLayout
+from drawer import Drawer
+from layouts.layout import BasicLayout
 from music_player import initialise_mixer, MusicPlayer
 from navigator import Navigator
+from opengl_support.helpers import init_opengl
 from resources import Resources, find_resource
 from undo import UndoManager
 from views.map_view import MapView, MapViewParameters
@@ -24,6 +25,7 @@ class App(Navigator):
         self.music_player: Optional[MusicPlayer] = None
         self.undo_manager = UndoManager()
         self.animator = Animator(self.undo_manager)
+        self.drawer: Optional[Drawer] = None
         self.current_view: Optional[View] = None
         self.last_window_size: Tuple[int, int] = DEFAULT_WINDOW_SIZE
         self.layout: BasicLayout = BasicLayout(identifier="app_window")
@@ -35,20 +37,22 @@ class App(Navigator):
         pygame.mixer.music.load(find_resource("resources/Puzzle-Dreams-3.mp3"))
         pygame.mixer.music.play(-1)
 
-        display = pygame.display.set_mode(DEFAULT_WINDOW_SIZE, pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE)
+        display = pygame.display.set_mode(DEFAULT_WINDOW_SIZE, pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE |
+                                          pygame.OPENGL)
         self._keep_running = True
-
         self.resources = Resources(display)
+        self.drawer = Drawer(self.resources)
         self.music_player = MusicPlayer(self.resources, self.undo_manager)
         self.go_to_view(MapView, MapViewParameters(map_index=0))
+        self.restart_opengl()
         return True
 
     def go_to_view(self, view: type, parameters: any):
         if self.current_view:
             self.current_view.close()
         self.layout.remove_layout()
-        self.current_view: View = view(self.undo_manager, self.animator, self.music_player, self.resources,
-                                       self, self.layout)
+        self.current_view: View = view(self.undo_manager, self.animator, self.drawer, self.music_player,
+                                       self.resources, self, self.layout)
         self.current_view.initialise(parameters)
         self.layout.update_rect(self.resources.display.get_rect())
 
@@ -64,10 +68,11 @@ class App(Navigator):
             # Handle screen resizing
             if event.type == pygame.VIDEORESIZE:
                 self.resources.display: pygame.SurfaceType = pygame.display.set_mode(
-                    (event.w, event.h),self.resources.display.get_flags())
+                    (event.w, event.h), self.resources.display.get_flags())
                 if not self.resources.display.get_flags() & pygame.FULLSCREEN:
                     self.last_window_size = event.w, event.h
                 self.layout.update_rect(self.resources.display.get_rect())
+                self.restart_opengl()
 
             if event.type == pygame.KEYDOWN:
                 # Quit the game
@@ -84,6 +89,7 @@ class App(Navigator):
                     new_flags = (flags ^ pygame.FULLSCREEN) | pygame.RESIZABLE
                     self.resources.display: pygame.SurfaceType = pygame.display.set_mode(size, new_flags)
                     self.layout.update_rect(self.resources.display.get_rect())
+                    self.restart_opengl()
 
         self.current_view.on_events(events)
 
@@ -96,7 +102,7 @@ class App(Navigator):
 
     def draw(self):
         self.current_view.draw()
-        pygame.display.update()
+        self.drawer.update_display()
 
     @staticmethod
     def on_clean_up():
@@ -114,6 +120,10 @@ class App(Navigator):
             self.clock.tick(60)
 
         App.on_clean_up()
+
+    def restart_opengl(self):
+        init_opengl(self.resources.display)
+        self.resources.reload_textures()
 
 
 if __name__ == "__main__":

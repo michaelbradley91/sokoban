@@ -4,6 +4,7 @@ from LinearAnimation import LinearAnimation
 from animator import Animator
 from coordinate import Coordinate
 from direction import Direction, coordinate_change_to_direction
+from drawer import Drawer
 from grid import Grid
 from music_player import MusicPlayer
 from pieces.piece import Piece
@@ -17,10 +18,8 @@ ANIMATION_SPEED = 100
 
 
 class PlayerAnimation(LinearAnimation):
-    def __init__(self, resources: Resources, start: Coordinate, finish: Coordinate):
-        direction = coordinate_change_to_direction(finish - start)
-        images = resources.get_player_images(direction)
-        super().__init__(start, finish, images, WALK_SPEED, ANIMATION_SPEED)
+    def __init__(self, drawer: Drawer, start: Coordinate, finish: Coordinate):
+        super().__init__(start, finish, drawer.number_of_player_phases(), WALK_SPEED, ANIMATION_SPEED)
 
 
 class PlayerPiece(Piece):
@@ -29,8 +28,8 @@ class PlayerPiece(Piece):
     """
 
     def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator,
-                 music_player: MusicPlayer, resources: Resources):
-        super().__init__(grid, undo_manager, animator, music_player, resources)
+                 drawer: Drawer, music_player: MusicPlayer, resources: Resources):
+        super().__init__(grid, undo_manager, animator, drawer, music_player, resources)
         self.direction = Direction.left
         self.animation: Optional[PlayerAnimation] = None
 
@@ -57,14 +56,13 @@ class PlayerPiece(Piece):
         if not super().move(coordinate):
             return False
 
-        self.animation = PlayerAnimation(self.resources, old_coordinate, coordinate)
+        self.animation = PlayerAnimation(self.drawer, old_coordinate, coordinate)
         self.animator.add_animation(self.animation)
 
         return True
 
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
         if not self.animation or self.animation.is_finished:
-            image = self.resources.get_player_images(self.direction)[0]
-            self.draw_at_coordinate(grid_offset, square_size, self.coordinate, image)
+            self.drawer.draw_player(self.get_rect_at_coordinate(grid_offset, square_size), self.direction, 0)
         else:
-            self.animation.draw(self.resources.display, grid_offset, square_size)
+            self.animation.draw(lambda r, i: self.drawer.draw_player(r, self.direction, i), grid_offset, square_size)

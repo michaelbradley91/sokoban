@@ -3,6 +3,7 @@ from typing import Tuple, Optional
 from LinearAnimation import LinearAnimation
 from animator import Animator
 from coordinate import Coordinate
+from drawer import Drawer
 from grid import Grid
 from music_player import MusicPlayer
 from pieces.goal import GoalPiece
@@ -13,8 +14,8 @@ from undo import UndoManager
 
 
 class CrateAnimation(LinearAnimation):
-    def __init__(self, resources: Resources, start: Coordinate, finish: Coordinate):
-        super().__init__(start, finish, [resources.crate_image], WALK_SPEED, 1)
+    def __init__(self, start: Coordinate, finish: Coordinate):
+        super().__init__(start, finish, 1, WALK_SPEED, 1)
 
 
 class CratePiece(Piece):
@@ -23,8 +24,8 @@ class CratePiece(Piece):
     """
 
     def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator,
-                 music_player: MusicPlayer, resources: Resources):
-        super().__init__(grid, undo_manager, animator, music_player, resources)
+                 drawer: Drawer, music_player: MusicPlayer, resources: Resources):
+        super().__init__(grid, undo_manager, animator, drawer, music_player, resources)
         self.animation: Optional[CrateAnimation] = None
 
     def react_to_piece_move(self, piece: "Piece") -> bool:
@@ -42,7 +43,7 @@ class CratePiece(Piece):
         if not super().move(coordinate):
             return False
 
-        self.animation = CrateAnimation(self.resources, old_coordinate, coordinate)
+        self.animation = CrateAnimation(old_coordinate, coordinate)
         self.animator.add_animation(self.animation)
 
         if any(p for p in self.grid[self.coordinate] if type(p) == GoalPiece):
@@ -53,7 +54,6 @@ class CratePiece(Piece):
 
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
         if not self.animation or self.animation.is_finished:
-            self.draw_at_coordinate(grid_offset, square_size, self.coordinate, self.resources.crate_image)
+            self.drawer.draw_crate(self.get_rect_at_coordinate(grid_offset, square_size))
         else:
-            self.animation.draw(self.resources.display, grid_offset, square_size)
-
+            self.animation.draw(lambda r, i: self.drawer.draw_crate(r), grid_offset, square_size)
