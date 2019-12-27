@@ -1,11 +1,19 @@
 from typing import Dict, Tuple, Optional, List
 
 import pygame
+import sys
+import os
 from pygame.font import FontType, Font
 from pygame.mixer import SoundType
-from undo import UndoManager
 from direction import Direction
-from music_player import MusicPlayer
+
+
+def find_resource(path):
+    if getattr(sys, 'frozen', False):
+        base_path = os.path.dirname(sys.executable)
+    else:
+        base_path = os.path.dirname(__file__)
+    return os.path.join(base_path, path)
 
 
 def scale(size, surface: pygame.SurfaceType) -> pygame.SurfaceType:
@@ -47,14 +55,14 @@ class Resources:
     """
     def __init__(self, display: pygame.SurfaceType):
         self.display: pygame.SurfaceType = display
-        self.tiles1 = load_tile_set("resources/sokoban_tilesheet.png", 128)
-        self.tiles2 = load_tile_set("resources/sokoban_tilesheet2.png", 64, width=6, height=6)
-        self.tiles3 = load_tile_set("resources/sokoban_tilesheet3.png", 128)
-        self.__crate_sound = pygame.mixer.Sound('resources/crate_sound.wav')
-        self.__you_win_font = Font("resources/heygorgeous.ttf", 48)
-        self.__coin_sound = pygame.mixer.Sound('resources/mario coin.wav')
+        self.tiles1 = load_tile_set(find_resource("resources/sokoban_tilesheet.png"), 128)
+        self.tiles2 = load_tile_set(find_resource("resources/sokoban_tilesheet2.png"), 64, width=6, height=6)
+        self.tiles3 = load_tile_set(find_resource("resources/sokoban_tilesheet3.png"), 128)
+        self.__crate_sound = pygame.mixer.Sound(find_resource("resources/crate_sound.wav"))
+        self.__you_win_font = Font(find_resource("resources/heygorgeous.ttf"), 48)
+        self.__coin_sound = pygame.mixer.Sound(find_resource("resources/mario coin.wav"))
         self.__crate_success_sound = self.__coin_sound
-        self.__win_sound = pygame.mixer.Sound('resources/Ta Da-SoundBible.com-1884170640.wav')
+        self.__win_sound = pygame.mixer.Sound(find_resource("resources/Ta Da-SoundBible.com-1884170640.wav"))
 
     @property
     def you_win_font(self) -> FontType:

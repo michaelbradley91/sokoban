@@ -9,7 +9,7 @@ from animator import Animator
 from layouts.layout import Layout, BasicLayout
 from music_player import initialise_mixer, MusicPlayer
 from navigator import Navigator
-from resources import Resources
+from resources import Resources, find_resource
 from undo import UndoManager
 from views.map_view import MapView, MapViewParameters
 from views.view import View
@@ -31,7 +31,7 @@ class App(Navigator):
     def on_init(self):
         initialise_mixer()
         pygame.init()
-        pygame.mixer.music.load("resources/Puzzle-Dreams-3.mp3")
+        pygame.mixer.music.load(find_resource("resources/Puzzle-Dreams-3.mp3"))
         pygame.mixer.music.play(-1)
 
         display = pygame.display.set_mode(DEFAULT_WINDOW_SIZE, pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE)
