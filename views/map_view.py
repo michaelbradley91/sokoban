@@ -98,15 +98,13 @@ class MapView(View[MapViewParameters, MapViewModel]):
         self.layout.set_layout(aspect_layout)
 
     def pre_event_loop(self):
-        pass
-
-    def post_event_loop(self):
         if self.model.players_can_move:
             pressed_keys = pygame.key.get_pressed()
             move = try_get_move_from_key(pressed_keys)
             if move:
                 self.move_players(move)
 
+    def post_event_loop(self):
         if not self.model.map_won:
             self.model.check_win()
 

@@ -1,21 +1,7 @@
-from typing import Callable, List
+from typing import List
 
+from animations.animation import Animation
 from undo import UndoManager
-
-
-class Animation:
-    """
-    Represents an abstract animation object
-    """
-    def __init__(self, animate: Callable[[], bool], cancel: Callable):
-        self.__animate = animate
-        self.__cancel = cancel
-
-    def animate(self) -> bool:
-        return self.__animate()
-
-    def cancel(self):
-        self.__cancel()
 
 
 class Animator:
@@ -49,6 +35,8 @@ class Animator:
         :return: nothing
         """
         self.__current_animations.append(animation)
+        animation.start()
+
         self.undo_manager.register_cancel(animation.cancel)
 
     def cancel_animation(self, animation: Animation):

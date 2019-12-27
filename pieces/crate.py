@@ -1,6 +1,6 @@
 from typing import Tuple, Optional
 
-from LinearAnimation import LinearAnimation
+from animations.linear_animation import LinearAnimation
 from animator import Animator
 from coordinate import Coordinate
 from drawer import Drawer

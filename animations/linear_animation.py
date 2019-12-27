@@ -1,10 +1,9 @@
 from time import time
-from typing import List, NamedTuple, Optional, Tuple, Callable
+from typing import NamedTuple, Tuple, Callable
 
 from pygame.rect import Rect
-from pygame.surface import SurfaceType
 
-from animator import Animation
+from animations.animation import Animation
 from coordinate import Coordinate
 
 
@@ -49,6 +48,9 @@ class LinearAnimation(Animation):
             position=(self.__start.x, self.__start.y)
         )
         self.__vector = finish - start
+
+    def start(self):
+        self.__start_time = time()
 
     def stop(self):
         self.__status = LinearAnimationStatus(
@@ -103,6 +105,9 @@ class LinearAnimation(Animation):
         :param square_size: the size of each square
         :return: nothing
         """
+        if not self.__start_time:
+            self.__start_time = time()
+
         position = self.status.position
         new_x = grid_offset[0] + int(position[0] * square_size)
         new_y = grid_offset[1] + int(position[1] * square_size)

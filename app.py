@@ -111,7 +111,6 @@ class App(Navigator):
     def on_execute(self):
         if not self.on_init():
             self._keep_running = False
-
         while self._keep_running:
             self.pre_event_loop()
             self.on_events(list(pygame.event.get()))

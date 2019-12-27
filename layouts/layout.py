@@ -84,12 +84,6 @@ class BasicLayout(Layout):
         super().__init__(identifier)
         self.layout: Optional[Layout] = None
 
-
-    def update_rect(self, rect: Rect):
-        super().update_rect(rect)
-        if self.identifier == "app_window":
-            print("New window size was: ", rect)
-
     def set_layout(self, layout: Layout):
         """
         Set the layout used by the Basic Layout
