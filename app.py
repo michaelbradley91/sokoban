@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 import pygame
 from pygame.event import EventType
@@ -25,7 +25,8 @@ class App(Navigator):
         self.undo_manager = UndoManager()
         self.animator = Animator(self.undo_manager)
         self.current_view: Optional[View] = None
-        self.layout: BasicLayout = BasicLayout()
+        self.last_window_size: Tuple[int, int] = DEFAULT_WINDOW_SIZE
+        self.layout: BasicLayout = BasicLayout(identifier="app_window")
         self.clock = Clock()
 
     def on_init(self):
@@ -49,7 +50,7 @@ class App(Navigator):
         self.current_view: View = view(self.undo_manager, self.animator, self.music_player, self.resources,
                                        self, self.layout)
         self.current_view.initialise(parameters)
-        self.layout.update_rect(Rect((0, 0), self.resources.display.get_size()))
+        self.layout.update_rect(self.resources.display.get_rect())
 
     def on_events(self, events: List[EventType]):
         if not events:
@@ -64,7 +65,9 @@ class App(Navigator):
             if event.type == pygame.VIDEORESIZE:
                 self.resources.display: pygame.SurfaceType = pygame.display.set_mode(
                     (event.w, event.h),self.resources.display.get_flags())
-                self.layout.update_rect(Rect((0, 0), self.resources.display.get_size()))
+                if not self.resources.display.get_flags() & pygame.FULLSCREEN:
+                    self.last_window_size = event.w, event.h
+                self.layout.update_rect(self.resources.display.get_rect())
 
             if event.type == pygame.KEYDOWN:
                 # Quit the game
@@ -74,10 +77,13 @@ class App(Navigator):
                 # Full screen toggle
                 if event.key == pygame.K_f:
                     flags = self.resources.display.get_flags()
-                    new_flags = flags ^ pygame.FULLSCREEN
-                    self.resources.display: pygame.SurfaceType = pygame.display.set_mode(
-                        self.resources.display.get_size(), new_flags)
-                    self.layout.update_rect(Rect((0, 0), self.resources.display.get_size()))
+                    if flags & pygame.FULLSCREEN:
+                        size = self.last_window_size
+                    else:
+                        size = pygame.display.list_modes()[0]
+                    new_flags = (flags ^ pygame.FULLSCREEN) | pygame.RESIZABLE
+                    self.resources.display: pygame.SurfaceType = pygame.display.set_mode(size, new_flags)
+                    self.layout.update_rect(self.resources.display.get_rect())
 
         self.current_view.on_events(events)
 

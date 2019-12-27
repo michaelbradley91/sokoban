@@ -80,12 +80,13 @@ class MapView(View[MapViewParameters, MapViewModel]):
         margin_layout = MarginLayout((0, 1 / 5))
         margin_layout.set_layout(aspect_layout)
 
-        self.grid_layout = GridLayout(width=self.grid.width, height=self.grid.height)
+        self.grid_layout = GridLayout(width=self.grid.width, height=self.grid.height, identifier="Grid")
         self.grid_layout.add_layout(self.square_layout, Coordinate(0, 0))
         self.grid_layout.add_layout(margin_layout, Coordinate(0, self.grid.height // 2),
                                     column_span=self.grid.width)
 
-        aspect_layout = AspectLayout((self.grid.width, self.grid.height), (self.grid.width, self.grid.height))
+        aspect_layout = AspectLayout((self.grid.width, self.grid.height), (self.grid.width, self.grid.height),
+                                     identifier="Outer Aspect")
         aspect_layout.set_layout(self.grid_layout)
 
         self.layout.set_layout(aspect_layout)

@@ -21,7 +21,6 @@ class StartView(View[StartViewParameters, StartViewModel]):
                  navigator: Navigator, layout: BasicLayout):
         super().__init__(undo_manager, animator, music_player, resources, navigator, layout)
 
-
     def init(self):
         title_layout = BasicLayout()
 
