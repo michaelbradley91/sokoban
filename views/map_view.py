@@ -10,6 +10,7 @@ from direction import Direction, direction_sorter, direction_to_coordinate, try_
 from layouts.aspect_layout import AspectLayout
 from layouts.grid_layout import GridLayout
 from layouts.layout import BasicLayout
+from layouts.margin_layout import MarginLayout
 from map_reader import read_map
 from maps.maps import MAPS
 from music_player import MusicPlayer
@@ -65,14 +66,23 @@ class MapView(View[MapViewParameters, MapViewModel]):
         self.grid_layout: Optional[GridLayout] = None
         self.square_layout: Optional[BasicLayout] = None
         self.you_win_layout: Optional[BasicLayout] = None
+        self.you_win: Optional[pygame.SurfaceType] = None
 
     def init(self):
+        # Build the layout for the page
         self.square_layout = BasicLayout()
         self.you_win_layout = BasicLayout()
+        self.you_win: pygame.SurfaceType = self.resources.you_win_font.render("You win!", True, pygame.Color('black'))
+
+        aspect_layout = AspectLayout(self.you_win.get_size())
+        aspect_layout.set_layout(self.you_win_layout)
+
+        margin_layout = MarginLayout((0, 1 / 5))
+        margin_layout.set_layout(aspect_layout)
 
         self.grid_layout = GridLayout(width=self.grid.width, height=self.grid.height)
         self.grid_layout.add_layout(self.square_layout, Coordinate(0, 0))
-        self.grid_layout.add_layout(self.you_win_layout, Coordinate(0, self.grid.height // 2),
+        self.grid_layout.add_layout(margin_layout, Coordinate(0, self.grid.height // 2),
                                     column_span=self.grid.width)
 
         aspect_layout = AspectLayout((self.grid.width, self.grid.height), (self.grid.width, self.grid.height))
@@ -160,17 +170,8 @@ class MapView(View[MapViewParameters, MapViewModel]):
         Draw the you win text!
         :return: nothing
         """
-        you_win: pygame.SurfaceType = self.resources.you_win_font.render("You win!", True, pygame.Color('black'))
-
-        target_height = int(self.square_size / 1.5)
-        target_width = int((you_win.get_width() / you_win.get_height()) * target_height)
-
-        you_win = pygame.transform.scale(you_win, (target_width, target_height))
-
-        x = int(self.you_win_layout.bounding_rect.centerx - (you_win.get_width() // 2))
-        y = int(self.you_win_layout.bounding_rect.centery - (you_win.get_height() // 2))
-
-        self.resources.display.blit(you_win, (x, y))
+        you_win = pygame.transform.scale(self.you_win, self.you_win_layout.bounding_rect.size)
+        self.resources.display.blit(you_win, self.you_win_layout.bounding_rect.topleft)
 
     def move_players(self, direction: Direction):
         """

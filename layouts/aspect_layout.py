@@ -24,6 +24,9 @@ class AspectLayout(Layout):
         super().__init__(identifier)
         self.aspect_ratio = aspect_ratio
         self.to_the_nearest = to_the_nearest
+        if self.to_the_nearest is None:
+            self.to_the_nearest = 1, 1
+
         self.layout: Optional[Layout] = None
 
     def set_layout(self, layout: Layout):
