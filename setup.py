@@ -23,19 +23,6 @@ shortcut_table = [
      None,                      # ShowCmd
      'TARGETDIR'                # WkDir
      ),
-    ("StartupShortcut",         # Shortcut
-     "StartupFolder",           # Directory_
-     "Sokoban",                 # Name
-     "TARGETDIR",               # Component_
-     "[TARGETDIR]Sokoban.exe",  # Target
-     None,                      # Arguments
-     None,                      # Description
-     None,                      # Hotkey
-     None,                      # Icon
-     None,                      # IconIndex
-     None,                      # ShowCmd
-     'TARGETDIR'                # WkDir
-    ),
     ]
 msi_data = {"Shortcut": shortcut_table}
 
@@ -50,7 +37,7 @@ executables = [cx_Freeze.Executable(
 
 cx_Freeze.setup(
     name="Sokoban",
-    version="0.7.0",
+    version="0.8.0",
     description="Let's play Sokoban!",
     options={
         "build_exe": {
