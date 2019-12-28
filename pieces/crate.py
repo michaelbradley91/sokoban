@@ -3,7 +3,6 @@ from typing import Tuple, Optional
 from animations.linear_animation import LinearAnimation
 from animator import Animator
 from coordinate import Coordinate
-from drawer import Drawer
 from grid import Grid
 from music_player import MusicPlayer
 from pieces.goal import GoalPiece
@@ -24,8 +23,8 @@ class CratePiece(Piece):
     """
 
     def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator,
-                 drawer: Drawer, music_player: MusicPlayer, resources: Resources):
-        super().__init__(grid, undo_manager, animator, drawer, music_player, resources)
+                 music_player: MusicPlayer, resources: Resources):
+        super().__init__(grid, undo_manager, animator, music_player, resources)
         self.animation: Optional[CrateAnimation] = None
 
     def react_to_piece_move(self, piece: "Piece") -> bool:
@@ -54,6 +53,7 @@ class CratePiece(Piece):
 
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
         if not self.animation or self.animation.is_finished:
-            self.drawer.draw_crate(self.get_rect_at_coordinate(grid_offset, square_size))
+            self.resources.crate.draw(self.get_rect_at_coordinate(grid_offset, square_size))
         else:
-            self.animation.draw(lambda r, i: self.drawer.draw_crate(r), grid_offset, square_size)
+            animation_status = self.animation.calculate(grid_offset, square_size)
+            self.resources.crate.draw(animation_status.rect)

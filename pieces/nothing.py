@@ -14,4 +14,4 @@ class NothingPiece(Piece):
         return True
 
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
-        self.drawer.draw_floor(self.get_rect_at_coordinate(grid_offset, square_size))
+        self.resources.floor.draw(self.get_rect_at_coordinate(grid_offset, square_size))

@@ -5,7 +5,6 @@ from pygame.event import EventType
 from pygame.time import Clock
 
 from animator import Animator
-from drawer import Drawer
 from layouts.layout import BasicLayout
 from music_player import initialise_mixer, MusicPlayer
 from navigator import Navigator
@@ -25,7 +24,6 @@ class App(Navigator):
         self.music_player: Optional[MusicPlayer] = None
         self.undo_manager = UndoManager()
         self.animator = Animator(self.undo_manager)
-        self.drawer: Optional[Drawer] = None
         self.current_view: Optional[View] = None
         self.last_window_size: Tuple[int, int] = DEFAULT_WINDOW_SIZE
         self.layout: BasicLayout = BasicLayout(identifier="app_window")
@@ -41,7 +39,6 @@ class App(Navigator):
                                           pygame.OPENGL)
         self._keep_running = True
         self.resources = Resources(display)
-        self.drawer = Drawer(self.resources)
         self.music_player = MusicPlayer(self.resources, self.undo_manager)
         self.go_to_view(MapView, MapViewParameters(map_index=0))
         self.restart_opengl()
@@ -51,7 +48,7 @@ class App(Navigator):
         if self.current_view:
             self.current_view.close()
         self.layout.remove_layout()
-        self.current_view: View = view(self.undo_manager, self.animator, self.drawer, self.music_player,
+        self.current_view: View = view(self.undo_manager, self.animator, self.music_player,
                                        self.resources, self, self.layout)
         self.current_view.initialise(parameters)
         self.layout.update_rect(self.resources.display.get_rect())
@@ -102,7 +99,7 @@ class App(Navigator):
 
     def draw(self):
         self.current_view.draw()
-        self.drawer.update_display()
+        pygame.display.flip()
 
     @staticmethod
     def on_clean_up():
@@ -122,7 +119,7 @@ class App(Navigator):
 
     def restart_opengl(self):
         init_opengl(self.resources.display)
-        self.resources.reload_textures()
+        self.resources.reload()
 
 
 if __name__ == "__main__":

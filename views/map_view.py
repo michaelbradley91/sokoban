@@ -4,10 +4,8 @@ import pygame
 from pygame.event import EventType
 
 from animator import Animator
-from colours import BLACK
 from coordinate import Coordinate
 from direction import Direction, direction_sorter, direction_to_coordinate, try_get_move_from_key
-from drawer import Drawer
 from layouts.aspect_layout import AspectLayout
 from layouts.grid_layout import GridLayout
 from layouts.layout import BasicLayout
@@ -16,6 +14,7 @@ from map_reader import read_map
 from maps.maps import MAPS
 from music_player import MusicPlayer
 from navigator import Navigator
+from opengl_support.helpers import set_background_and_clear
 from pieces.crate import CratePiece
 from pieces.goal import GoalPiece
 from pieces.piece_draw_order import PIECE_DRAW_ORDER
@@ -42,8 +41,7 @@ class MapViewModel(ViewModel[MapViewParameters]):
         map_definition = MAPS[self.parameters.map_index]
 
         self.undo_manager.enabled = False
-        self.grid = read_map(self.undo_manager, self.resources, self.animator, self.drawer,
-                             self.music_player, map_definition)
+        self.grid = read_map(self.undo_manager, self.resources, self.animator, self.music_player, map_definition)
         self.undo_manager.enabled = True
         self.undo_manager.save_position(PLAYER_MOVE_UNDO_LABEL)
         self.map_won = False
@@ -65,10 +63,10 @@ class MapView(View[MapViewParameters, MapViewModel]):
     """
     A map view.
     """
-    def __init__(self, undo_manager: UndoManager, animator: Animator, drawer: Drawer, music_player: MusicPlayer,
+    def __init__(self, undo_manager: UndoManager, animator: Animator, music_player: MusicPlayer,
                  resources: Resources, navigator: Navigator, layout: BasicLayout):
 
-        super().__init__(undo_manager, animator, drawer, music_player, resources, navigator, layout)
+        super().__init__(undo_manager, animator, music_player, resources, navigator, layout)
         self.grid_layout: Optional[GridLayout] = None
         self.square_layout: Optional[BasicLayout] = None
         self.you_win_layout: Optional[BasicLayout] = None
@@ -165,7 +163,7 @@ class MapView(View[MapViewParameters, MapViewModel]):
             return False
 
     def draw(self):
-        self.drawer.draw_background(BACKGROUND_COLOUR)
+        set_background_and_clear(BACKGROUND_COLOUR)
 
         for piece_type in PIECE_DRAW_ORDER:
             for piece in self.grid.get_pieces_of_type(piece_type):
@@ -179,7 +177,7 @@ class MapView(View[MapViewParameters, MapViewModel]):
         Draw the you win text!
         :return: nothing
         """
-        self.drawer.draw_you_win(YOU_WIN_TEXT, YOU_WIN_COLOUR, self.you_win_layout.bounding_rect)
+        self.resources.you_win_font.draw_text(YOU_WIN_TEXT, YOU_WIN_COLOUR, self.you_win_layout.bounding_rect)
 
     def move_players(self, direction: Direction):
         """
