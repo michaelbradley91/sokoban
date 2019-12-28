@@ -50,12 +50,13 @@ executables = [cx_Freeze.Executable(
 
 cx_Freeze.setup(
     name="Sokoban",
-    version="0.5.0",
+    version="0.6.0",
     description="Let's play Sokoban!",
     options={
         "build_exe": {
-            "packages":["pygame"],
+            "packages": ["pygame", "OpenGL"],
             "include_files": ["resources/"],
+            "excludes": ["tkinter", "OpenGL.GL.SGIX.async", "numpy"]
         },
         "bdist_msi": {
             'upgrade_code': '{94a3e49d-c84d-4f08-bbc4-aa0b18cef955}',

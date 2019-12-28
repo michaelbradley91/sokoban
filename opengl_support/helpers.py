@@ -1,7 +1,11 @@
 import pygame
-from typing import Tuple
-
-from OpenGL.GL import *
+from OpenGL.GL import glGenTextures, glBindTexture, glTexImage2D, GL_TEXTURE_2D, GL_RGBA, GL_UNSIGNED_BYTE, \
+    glTexParameterf, GL_TEXTURE_WRAP_S, GL_REPEAT, GL_TEXTURE_WRAP_T, GL_TEXTURE_MAG_FILTER, GL_LINEAR, \
+    GL_TEXTURE_MIN_FILTER, GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE, glTexEnvi, glLoadIdentity, glBegin, \
+    GL_QUADS, glTexCoord2f, glVertex3i, glEnd, GL_CLAMP_TO_EDGE, glTexParameteri, GL_NEAREST, glEnable, GL_BLEND, \
+    GL_COLOR_MATERIAL, GL_MULTISAMPLE, GL_SAMPLE_ALPHA_TO_COVERAGE, GL_SRC_ALPHA, glBlendFunc, GL_ONE_MINUS_SRC_ALPHA, \
+    glBlendFuncSeparate, glClearColor, GL_ONE, GL_PROJECTION, glMatrixMode, glOrtho, GL_MODELVIEW, GL_COLOR_BUFFER_BIT, \
+    GL_DEPTH_BUFFER_BIT, glClear
 from pygame.surface import SurfaceType
 
 
