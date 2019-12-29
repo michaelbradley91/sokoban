@@ -4,6 +4,7 @@ import pygame
 from pygame.event import EventType
 
 from animator import Animator
+from colours import YOU_WIN_COLOUR, BACKGROUND_COLOUR
 from coordinate import Coordinate
 from direction import Direction, direction_sorter, direction_to_coordinate, try_get_move_from_key
 from layouts.aspect_layout import AspectLayout
@@ -20,14 +21,12 @@ from pieces.goal import GoalPiece
 from pieces.piece_draw_order import PIECE_DRAW_ORDER
 from pieces.player import PlayerPiece
 from resources import Resources
+from text import MAP_VIEW_YOU_WIN
 from undo import UndoManager
 from views.view import View, ViewModel
 
 
-BACKGROUND_COLOUR = pygame.Color("black")
 PLAYER_MOVE_UNDO_LABEL = "player_move"
-YOU_WIN_TEXT = "You win!"
-YOU_WIN_COLOUR = pygame.Color("black")
 
 
 class MapViewParameters(NamedTuple):
@@ -77,7 +76,7 @@ class MapView(View[MapViewParameters, MapViewModel]):
         self.square_layout = BasicLayout()
         self.you_win_layout = BasicLayout()
 
-        you_win_surface = self.resources.you_win_font.get_surface(YOU_WIN_TEXT, YOU_WIN_COLOUR)
+        you_win_surface = self.resources.you_win_font.get_surface(MAP_VIEW_YOU_WIN, YOU_WIN_COLOUR)
 
         aspect_layout = AspectLayout(you_win_surface.get_size())
         aspect_layout.set_layout(self.you_win_layout)
@@ -177,7 +176,7 @@ class MapView(View[MapViewParameters, MapViewModel]):
         Draw the you win text!
         :return: nothing
         """
-        self.resources.you_win_font.draw_text(YOU_WIN_TEXT, YOU_WIN_COLOUR, self.you_win_layout.bounding_rect)
+        self.resources.you_win_font.draw_text(MAP_VIEW_YOU_WIN, YOU_WIN_COLOUR, self.you_win_layout.bounding_rect)
 
     def move_players(self, direction: Direction):
         """

@@ -5,6 +5,7 @@ from coordinate import Coordinate
 from music_player import MusicPlayer
 
 from pieces.nothing import NothingPiece
+from pieces.wall import WallPiece
 from resources import Resources
 from undo import UndoManager
 
@@ -17,6 +18,8 @@ class Grid:
                  resources: Resources, width: int, height: int):
         self.__undo_manager = undo_manager
         self.__resources = resources
+        self.__animator = animator
+        self.__music_player = music_player
         self.__width = width
         self.__height = height
 
@@ -40,6 +43,24 @@ class Grid:
     @property
     def height(self) -> int:
         return self.__height
+
+    def add_outer_wall(self):
+        """
+        Add wall pieces all around the border of the grid
+        :return: nothing
+        """
+        for x in range(0, self.width):
+            self.add_piece(WallPiece(self, self.__undo_manager, self.__animator,
+                                     self.__music_player, self.__resources), Coordinate(x, 0))
+            self.add_piece(WallPiece(self, self.__undo_manager, self.__animator,
+                                     self.__music_player, self.__resources), Coordinate(x, self.height - 1))
+
+        for y in range(0, self.height):
+            self.add_piece(WallPiece(self, self.__undo_manager, self.__animator,
+                                     self.__music_player, self.__resources), Coordinate(0, y))
+            self.add_piece(WallPiece(self, self.__undo_manager, self.__animator,
+                                     self.__music_player, self.__resources), Coordinate(self.width - 1, y))
+
 
     def __iter__(self) -> Iterable[Coordinate]:
         return iter(self.__coordinates_to_pieces.keys())

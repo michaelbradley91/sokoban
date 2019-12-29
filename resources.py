@@ -67,7 +67,9 @@ class Resources:
         self.__win_sound = pygame.mixer.Sound(find_resource("resources/Ta Da-SoundBible.com-1884170640.wav"))
 
         # Fonts
-        self.__you_win_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 256))
+        self.__title_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 64))
+        self.__menu_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 24))
+        self.__you_win_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 32))
 
         # Display
         self.display = display
@@ -80,6 +82,8 @@ class Resources:
         self.tiles1.reload()
         self.tiles2.reload()
         self.tiles3.reload()
+        self.title_font.reload()
+        self.menu_font.reload()
         self.you_win_font.reload()
 
     @property
@@ -93,6 +97,14 @@ class Resources:
     @property
     def tiles3(self) -> TileSet:
         return self.__tiles3
+
+    @property
+    def title_font(self):
+        return self.__title_font
+
+    @property
+    def menu_font(self):
+        return self.__menu_font
 
     @property
     def you_win_font(self) -> Font:

@@ -5,7 +5,7 @@ import pygame
 from OpenGL.GL import glGenTextures, glTexImage2D, GL_TEXTURE_2D, GL_RGBA, GL_UNSIGNED_BYTE, \
     glTexParameterf, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE, \
     glTexEnvi, glLoadIdentity, glBindTexture, \
-    glBegin, GL_QUADS, glTexCoord2f, glVertex3i, glEnd, GL_NEAREST
+    glBegin, GL_QUADS, glTexCoord2f, glVertex3i, glEnd, GL_NEAREST, GL_LINEAR
 from pygame.rect import Rect
 
 DEFAULT_MAX_FONT_CACHE_SIZE = 100
@@ -114,8 +114,8 @@ class Font:
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface.get_width(), surface.get_height(),
                      0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data)
 
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
 
         self.__previous_texture_bound = text, font_colour

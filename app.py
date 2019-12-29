@@ -12,6 +12,7 @@ from opengl_support.helpers import init_opengl
 from resources import Resources, find_resource
 from undo import UndoManager
 from views.map_view import MapView, MapViewParameters
+from views.start_view import StartView, StartViewParameters
 from views.view import View
 
 DEFAULT_WINDOW_SIZE = 640, 704
@@ -40,7 +41,7 @@ class App(Navigator):
         self._keep_running = True
         self.resources = Resources(display)
         self.music_player = MusicPlayer(self.resources, self.undo_manager)
-        self.go_to_view(MapView, MapViewParameters(map_index=0))
+        self.go_to_view(StartView, StartViewParameters())
         self.restart_opengl()
         return True
 
@@ -100,6 +101,9 @@ class App(Navigator):
     def draw(self):
         self.current_view.draw()
         pygame.display.flip()
+
+    def quit(self):
+        self._keep_running = False
 
     @staticmethod
     def on_clean_up():

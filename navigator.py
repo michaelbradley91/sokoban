@@ -5,3 +5,7 @@ class Navigator(ABC):
     @abstractmethod
     def go_to_view(self, view: type, parameters: any):
         pass
+
+    @abstractmethod
+    def quit(self):
+        pass
