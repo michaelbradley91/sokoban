@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 import pygame
+
 from undo import UndoManager
 
 if TYPE_CHECKING:

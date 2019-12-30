@@ -3,14 +3,11 @@ from typing import Optional, Tuple
 from animations.animation import Animation
 from animations.linear_animation import LinearAnimation
 from animations.static_animation import StaticAnimation
-from animator import Animator
+from app_container import AppContainer
+from constants.direction import Direction, coordinate_change_to_direction
 from coordinate import Coordinate
-from direction import Direction, coordinate_change_to_direction
 from grid import Grid
-from music_player import MusicPlayer
 from pieces.piece import Piece
-from resources import Resources
-from undo import UndoManager
 
 # Seconds per square in milliseconds
 WALK_SPEED = 300
@@ -28,9 +25,8 @@ class PlayerPiece(Piece):
     A piece representing a player!
     """
 
-    def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator,
-                 music_player: MusicPlayer, resources: Resources):
-        super().__init__(grid, undo_manager, animator, music_player, resources)
+    def __init__(self, grid: "Grid", app_container: AppContainer):
+        super().__init__(grid, app_container)
         self.direction = Direction.left
         self.animation: Optional[Animation] = None
 

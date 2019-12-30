@@ -3,29 +3,24 @@ from typing import List, NamedTuple, Optional
 import pygame
 from pygame.event import EventType
 
-from animator import Animator
-from colours import YOU_WIN_COLOUR, BACKGROUND_COLOUR
+from app_container import AppContainer
+from constants.colours import YOU_WIN_COLOUR, BACKGROUND_COLOUR
+from constants.direction import Direction, direction_sorter, direction_to_coordinate, try_get_move_from_key
+from constants.text import MAP_VIEW_YOU_WIN
 from coordinate import Coordinate
-from direction import Direction, direction_sorter, direction_to_coordinate, try_get_move_from_key
 from layouts.aspect_layout import AspectLayout
 from layouts.grid_layout import GridLayout
 from layouts.layout import BasicLayout
 from layouts.margin_layout import MarginLayout
-from map_reader import read_map
+from maps.map_reader import read_map
 from maps.maps import MAPS
-from music_player import MusicPlayer
-from navigator import Navigator
 from opengl_support.helpers import set_background_and_clear
 from pieces.crate import CratePiece
 from pieces.goal import GoalPiece
 from pieces.piece_draw_order import PIECE_DRAW_ORDER
 from pieces.player import PlayerPiece
-from resources import Resources
-from text import MAP_VIEW_YOU_WIN
-from undo import UndoManager
 from views.start_view import StartView
 from views.view import View, ViewModel
-
 
 PLAYER_MOVE_UNDO_LABEL = "player_move"
 
@@ -63,10 +58,9 @@ class MapView(View[MapViewParameters, MapViewModel]):
     """
     A map view.
     """
-    def __init__(self, undo_manager: UndoManager, animator: Animator, music_player: MusicPlayer,
-                 resources: Resources, navigator: Navigator, layout: BasicLayout):
+    def __init__(self, app_container: AppContainer, layout: BasicLayout):
 
-        super().__init__(undo_manager, animator, music_player, resources, navigator, layout)
+        super().__init__(app_container, layout)
         self.grid_layout: Optional[GridLayout] = None
         self.square_layout: Optional[BasicLayout] = None
         self.you_win_layout: Optional[BasicLayout] = None

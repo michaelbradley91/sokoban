@@ -1,15 +1,16 @@
+import os
+import sys
 from typing import Dict, List, Tuple, Optional
 
 import pygame
-import sys
-import os
-from direction import Direction
 from pygame import SurfaceType
 from pygame.mixer import SoundType
+
+from constants.direction import Direction
+from coordinate import Coordinate
+from opengl_support.font import Font
 from opengl_support.helpers import load_texture_to_surface
 from opengl_support.tilesets import TileSet, Tile
-from opengl_support.font import Font
-from coordinate import Coordinate
 
 
 def find_resource(path):
@@ -68,7 +69,7 @@ class Resources:
         self.__win_sound = pygame.mixer.Sound(find_resource("resources/Ta Da-SoundBible.com-1884170640.wav"))
 
         # Fonts
-        self.__title_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 64))
+        self.__title_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 128))
         self.__menu_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 24))
         self.__you_win_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 32))
 

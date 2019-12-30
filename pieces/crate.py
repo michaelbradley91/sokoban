@@ -1,15 +1,12 @@
 from typing import Tuple, Optional
 
 from animations.linear_animation import LinearAnimation
-from animator import Animator
+from app_container import AppContainer
 from coordinate import Coordinate
 from grid import Grid
-from music_player import MusicPlayer
 from pieces.goal import GoalPiece
 from pieces.piece import Piece
 from pieces.player import WALK_SPEED
-from resources import Resources
-from undo import UndoManager
 
 
 class CrateAnimation(LinearAnimation):
@@ -22,9 +19,8 @@ class CratePiece(Piece):
     A piece representing a crate, which needs to be pushed onto a goal.
     """
 
-    def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator,
-                 music_player: MusicPlayer, resources: Resources):
-        super().__init__(grid, undo_manager, animator, music_player, resources)
+    def __init__(self, grid: "Grid", app_container: AppContainer):
+        super().__init__(grid, app_container)
         self.animation: Optional[CrateAnimation] = None
 
     def react_to_piece_move(self, piece: "Piece") -> bool:

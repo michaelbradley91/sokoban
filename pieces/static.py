@@ -1,21 +1,17 @@
+from typing import TYPE_CHECKING
 from typing import Tuple
 
-from animator import Animator
-from music_player import MusicPlayer
+from app_container import AppContainer
 from opengl_support.drawable import Drawable
 from pieces.piece import Piece
-from resources import Resources
-from undo import UndoManager
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from grid import Grid
 
 
 class StaticPiece(Piece):
-    def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator, music_player: MusicPlayer,
-                 resources: Resources, drawable: Drawable, allow_player_move: bool = False):
-        super().__init__(grid, undo_manager, animator, music_player, resources)
+    def __init__(self, grid: "Grid", app_container: AppContainer, drawable: Drawable, allow_player_move: bool = False):
+        super().__init__(grid, app_container)
         self.drawable = drawable
         self.allow_player_move = allow_player_move
 

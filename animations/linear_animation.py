@@ -1,5 +1,5 @@
 from time import time
-from typing import NamedTuple, Tuple, Callable
+from typing import NamedTuple, Tuple
 
 from pygame.rect import Rect
 

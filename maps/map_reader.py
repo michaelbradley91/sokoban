@@ -1,22 +1,15 @@
 from typing import List
 
-from animator import Animator
+from app_container import AppContainer
 from coordinate import Coordinate
 from grid import Grid
-from music_player import MusicPlayer
 from pieces.crate import CratePiece
 from pieces.goal import GoalPiece
 from pieces.player import PlayerPiece
 from pieces.wall import WallPiece
-from resources import Resources
-from undo import UndoManager
 
 
-def read_map(undo_manager: UndoManager,
-             resources: Resources,
-             animator: Animator,
-             music_player: MusicPlayer,
-             custom_map: List[List[str]]) -> Grid:
+def read_map(app_container: AppContainer, custom_map: List[List[str]]) -> Grid:
     height = len(custom_map)
     if height <= 0:
         raise ValueError("No empty maps allowed! (height)")
@@ -29,20 +22,20 @@ def read_map(undo_manager: UndoManager,
         if len(row) != width:
             raise ValueError("Maps must be rectangles")
 
-    grid = Grid(undo_manager, animator, music_player, resources, width, height)
+    grid = Grid(app_container, width, height)
     for y, row in enumerate(custom_map):
         for x, string in enumerate(row):
             if string == 'W':
                 grid.add_piece(
-                    WallPiece(grid, undo_manager, animator, music_player, resources), Coordinate(x, y))
+                    WallPiece(grid, app_container), Coordinate(x, y))
             if string == 'P':
                 grid.add_piece(
-                    PlayerPiece(grid, undo_manager, animator, music_player, resources), Coordinate(x, y))
+                    PlayerPiece(grid, app_container), Coordinate(x, y))
             if string == 'B':
                 grid.add_piece(
-                    CratePiece(grid, undo_manager, animator, music_player, resources), Coordinate(x, y))
+                    CratePiece(grid, app_container), Coordinate(x, y))
             if string == 'G':
                 grid.add_piece(
-                    GoalPiece(grid, undo_manager, animator, music_player, resources), Coordinate(x, y))
+                    GoalPiece(grid, app_container), Coordinate(x, y))
 
     return grid

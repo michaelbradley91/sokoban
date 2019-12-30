@@ -1,5 +1,5 @@
-from typing import List, Callable, Tuple, Dict
 from bisect import bisect
+from typing import List, Callable, Dict
 
 
 class OneTimeCancelFunction:

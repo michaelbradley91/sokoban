@@ -4,24 +4,21 @@ from typing import TYPE_CHECKING, Tuple
 
 from pygame.rect import Rect
 
-from animator import Animator
+from app_container import AppContainer, UsesAppContainer
 from coordinate import Coordinate
-from music_player import MusicPlayer
-from resources import Resources
-from undo import UndoManager
 
 if TYPE_CHECKING:
     from grid import Grid
 
 
-class Piece(ABC):
-    def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator,
-                 music_player: MusicPlayer, resources: Resources):
+class Piece(UsesAppContainer, ABC):
+    def __init__(self, grid: "Grid", app_container: AppContainer):
         self.grid = grid
-        self.undo_manager = undo_manager
-        self.animator = animator
-        self.music_player = music_player
-        self.resources = resources
+        self.__app_container = app_container
+
+    @property
+    def app_container(self):
+        return self.__app_container
 
     @property
     def coordinate(self) -> Coordinate:

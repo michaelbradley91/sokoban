@@ -1,33 +1,29 @@
-from time import time
-
-import pygame
 from enum import Enum
+from time import time
 from typing import List, Dict, Callable
 
+import pygame
 from pygame.event import EventType
 
-from animator import Animator
-from colours import MENU_TEXT_COLOUR, TITLE_COLOUR, BACKGROUND_COLOUR, MENU_SELECTED_TEXT_COLOUR, TITLE_SHADOW_COLOUR
+from app_container import AppContainer
+from constants.colours import MENU_TEXT_COLOUR, TITLE_COLOUR, BACKGROUND_COLOUR, MENU_SELECTED_TEXT_COLOUR, \
+    TITLE_SHADOW_COLOUR
+from constants.direction import Direction, direction_to_coordinate
+from constants.text import START_VIEW_START, START_VIEW_OPTIONS, START_VIEW_HELP, START_VIEW_QUIT, START_VIEW_TITLE, \
+    draw_text_with_border
 from coordinate import Coordinate
-from direction import Direction, direction_to_coordinate
 from grid import Grid
 from layouts.aspect_layout import AspectLayout
 from layouts.grid_layout import GridLayout
 from layouts.layout import BasicLayout
 from layouts.margin_layout import MarginLayout
-from music_player import MusicPlayer
-from navigator import Navigator
 from opengl_support.helpers import set_background_and_clear
 from pieces.crate import CratePiece
 from pieces.goal import GoalPiece
-from pieces.static import StaticPiece
 from pieces.piece_draw_order import PIECE_DRAW_ORDER
 from pieces.player import PlayerPiece
+from pieces.static import StaticPiece
 from pieces.wall import WallPiece
-from resources import Resources
-from text import START_VIEW_START, START_VIEW_OPTIONS, START_VIEW_HELP, START_VIEW_QUIT, START_VIEW_TITLE, \
-    draw_text_with_border
-from undo import UndoManager
 from views.view import ViewModel, View
 
 
@@ -68,14 +64,12 @@ class StartViewModel(ViewModel[StartViewParameters]):
         self.menu_option_selected = MenuOption.start
 
         self.undo_manager.enabled = False
-        self.grid = Grid(self.undo_manager, self.animator, self.music_player, self.resources, GRID_WIDTH, GRID_HEIGHT)
+        self.grid = Grid(self.app_container, GRID_WIDTH, GRID_HEIGHT)
 
-        self.player_piece = PlayerPiece(self.grid, self.undo_manager, self.animator,
-                                        self.music_player, self.resources)
+        self.player_piece = PlayerPiece(self.grid, self.app_container)
         self.player_piece.direction = Direction.left
 
-        self.crate_piece = CratePiece(self.grid, self.undo_manager, self.animator,
-                                      self.music_player, self.resources)
+        self.crate_piece = CratePiece(self.grid, self.app_container)
 
         self.resources.crate_sound.set_volume(0)
 
@@ -96,16 +90,14 @@ class StartViewModel(ViewModel[StartViewParameters]):
         # Title bricks
         for y in range(1, TITLE_HEIGHT + 1):
             for x in range(1, self.grid.width - 1):
-                self.grid.add_piece(StaticPiece(self.grid, self.undo_manager, self.animator,
-                                                self.music_player, self.resources, self.resources.menu_background),
+                self.grid.add_piece(StaticPiece(self.grid, self.app_container, self.resources.menu_background),
                                     Coordinate(x, y))
 
         # Menu item bricks
         for x in range(MENU_OPTION_LEFT, MENU_OPTION_RIGHT + 1):
             for i in range(0, len(MENU_OPTION_BY_INDEX)):
                 y = menu_option_position(i)
-                self.grid.add_piece(StaticPiece(self.grid, self.undo_manager, self.animator,
-                                                self.music_player, self.resources, self.resources.menu_background),
+                self.grid.add_piece(StaticPiece(self.grid, self.app_container, self.resources.menu_background),
                                     Coordinate(x, y))
 
         # Regular wall. We alternate blocked off positions every 2 menu items, starting with the second...
@@ -118,17 +110,13 @@ class StartViewModel(ViewModel[StartViewParameters]):
                 # Wall on the left
                 r = range(1, MENU_OPTION_LEFT)
             for x in r:
-                self.grid.add_piece(WallPiece(self.grid, self.undo_manager, self.animator,
-                                              self.music_player, self.resources),
-                                    Coordinate(x, y))
+                self.grid.add_piece(WallPiece(self.grid, self.app_container), Coordinate(x, y))
 
         # Crate
         self.grid.add_piece(self.crate_piece, Coordinate(2, menu_option_position(1) - 1))
 
         # Goal
-        self.grid.add_piece(GoalPiece(self.grid, self.undo_manager, self.animator,
-                                      self.music_player, self.resources),
-                            Coordinate(GRID_WIDTH - 2, GRID_HEIGHT - 2))
+        self.grid.add_piece(GoalPiece(self.grid, self.app_container), Coordinate(GRID_WIDTH - 2, GRID_HEIGHT - 2))
 
         # Player loop
         # Around the crate
@@ -166,13 +154,10 @@ class StartViewModel(ViewModel[StartViewParameters]):
                 self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.right))
                 self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
                 self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
-                if i != final_i:
-                    self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
-                    self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
+                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
+                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
                 self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.right))
                 self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
-                if i == final_i:
-                    self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.right))
 
     def go_down_one_menu_option(self):
         """
@@ -194,9 +179,8 @@ class StartViewModel(ViewModel[StartViewParameters]):
 
 
 class StartView(View[StartViewParameters, StartViewModel]):
-    def __init__(self, undo_manager: UndoManager, animator: Animator, music_player: MusicPlayer, resources: Resources,
-                 navigator: Navigator, layout: BasicLayout):
-        super().__init__(undo_manager, animator, music_player, resources, navigator, layout)
+    def __init__(self, app_container: AppContainer, layout: BasicLayout):
+        super().__init__(app_container, layout)
 
         from views.map_view import MapView, MapViewParameters
 

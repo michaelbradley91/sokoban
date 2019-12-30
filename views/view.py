@@ -4,34 +4,25 @@ from typing import TypeVar, Generic, Optional, List
 import typing_inspect
 from pygame.event import EventType
 
-from animator import Animator
+from app_container import AppContainer, UsesAppContainer
 from layouts.layout import BasicLayout
-from music_player import MusicPlayer
-from navigator import Navigator
-from resources import Resources
-from undo import UndoManager
 
 T = TypeVar('T')
 S = TypeVar('S')
 
 
-class View(ABC, Generic[T, S]):
+class View(UsesAppContainer, ABC, Generic[T, S]):
     """
     An abstract representation of a view.
     Note: the constructor parameters are fixed. Other parameters should be provided by setting
     the correct parameter type.
     """
 
-    def __init__(self, undo_manager: UndoManager, animator: Animator, music_player: MusicPlayer,
-                 resources: Resources, navigator: Navigator, layout: BasicLayout):
+    def __init__(self, app_container: AppContainer, layout: BasicLayout):
         self.parameters: Optional[T] = None
         self.model: Optional[S] = None
-        self.undo_manager = undo_manager
-        self.animator = animator
-        self.music_player = music_player
-        self.resources = resources
-        self.navigator = navigator
-        self.layout = layout
+        self.__app_container = app_container
+        self.__layout = layout
 
     def initialise(self, parameters: T):
         """ Initialise the view by saving the parameters and resetting various resources """
@@ -45,6 +36,14 @@ class View(ABC, Generic[T, S]):
         model_type = typing_inspect.get_args(typing_inspect.get_generic_bases(type(self))[0])[1]
         self.model: S = model_type(self)
         self.init()
+
+    @property
+    def layout(self):
+        return self.__layout
+
+    @property
+    def app_container(self) -> AppContainer:
+        return self.__app_container
 
     @property
     def width(self):
@@ -85,26 +84,14 @@ class View(ABC, Generic[T, S]):
         pass
 
 
-class ViewModel(Generic[T]):
+class ViewModel(Generic[T], UsesAppContainer):
     def __init__(self, view: "View[T, ViewModel[T]]"):
         self.view = view
 
     @property
+    def app_container(self) -> AppContainer:
+        return self.view.app_container
+
+    @property
     def parameters(self) -> T:
         return self.view.parameters
-
-    @property
-    def resources(self) -> Resources:
-        return self.view.resources
-
-    @property
-    def music_player(self) -> MusicPlayer:
-        return self.view.music_player
-
-    @property
-    def undo_manager(self) -> UndoManager:
-        return self.view.undo_manager
-
-    @property
-    def animator(self) -> Animator:
-        return self.view.animator
