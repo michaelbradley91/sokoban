@@ -1,3 +1,4 @@
+import pygame
 from time import time
 from typing import NamedTuple, Tuple
 
@@ -55,7 +56,7 @@ class LinearAnimation(Animation):
         )
 
     def start(self):
-        self.start_time = time()
+        self.start_time = pygame.time.get_ticks()
 
     def un_finish(self):
         self.__status = self.__status._replace(finished=False)
@@ -76,10 +77,10 @@ class LinearAnimation(Animation):
             return self.status
 
         if not self.start_time:
-            self.start_time = time()
+            self.start_time = pygame.time.get_ticks()
 
-        now = time()
-        percentage_travelled = ((now - self.start_time) * 1000) / self.travel_time
+        now = pygame.time.get_ticks()
+        percentage_travelled = (now - self.start_time) / self.travel_time
 
         if percentage_travelled >= 0.99999:
             # Done!
@@ -92,11 +93,12 @@ class LinearAnimation(Animation):
 
         # Calculate the distance moved
         vector = self.finish_position - self.start_position
+        print(percentage_travelled)
         new_x = self.start_position.x + (vector.x * percentage_travelled)
         new_y = self.start_position.y + (vector.y * percentage_travelled)
 
         # Calculate the image to display
-        image_to_show = int(((now - self.start_time) * 1000) / self.__image_time) % self.__number_of_images
+        image_to_show = int(((now - self.start_time)) / self.__image_time) % self.__number_of_images
 
         self.__status = LinearAnimationState(
             position=(new_x, new_y),
@@ -114,11 +116,13 @@ class LinearAnimation(Animation):
         :return: the linear animation status
         """
         if not self.start_time:
-            self.start_time = time()
+            self.start_time = pygame.time.get_ticks()
 
         position = self.status.position
-        new_x = grid_offset[0] + int(position[0] * square_size)
-        new_y = grid_offset[1] + int(position[1] * square_size)
+        print(position)
+        new_x = grid_offset[0] + (position[0] * square_size)
+        new_y = grid_offset[1] + (position[1] * square_size)
+        print(new_x, new_y)
         rect = Rect((new_x, new_y), (square_size, square_size))
         image_index = self.status.image_index
         return LinearAnimationResult(

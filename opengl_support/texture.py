@@ -4,7 +4,7 @@ import pygame
 from OpenGL.GL import glGenTextures, glBindTexture, glTexImage2D, GL_TEXTURE_2D, GL_RGBA, GL_UNSIGNED_BYTE, \
     glTexParameterf, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE, \
     glTexEnvi, glLoadIdentity, glBegin, \
-    GL_QUADS, glTexCoord2f, glVertex3i, glEnd, GL_NEAREST
+    GL_QUADS, glTexCoord2f, glVertex3i, glEnd, GL_NEAREST, glVertex3f
 from pygame.rect import Rect
 
 from opengl_support.drawable import Drawable
@@ -53,13 +53,13 @@ class Texture(Drawable):
         glBindTexture(GL_TEXTURE_2D, self.texture_id)
         glBegin(GL_QUADS)
         glTexCoord2f(sub_rectangle.x / self.width, sub_rectangle.y / self.height)
-        glVertex3i(rect.x, rect.y, 0)
+        glVertex3f(rect.x, rect.y, 0)
         glTexCoord2f(sub_rectangle.right / self.width, sub_rectangle.y / self.height)
-        glVertex3i(rect.right, rect.y, 0)
+        glVertex3f(rect.right, rect.y, 0)
         glTexCoord2f(sub_rectangle.right / self.width, sub_rectangle.bottom / self.height)
-        glVertex3i(rect.right, rect.bottom, 0)
+        glVertex3f(rect.right, rect.bottom, 0)
         glTexCoord2f(sub_rectangle.x / self.width, sub_rectangle.bottom / self.height)
-        glVertex3i(rect.x, rect.bottom, 0)
+        glVertex3f(rect.x, rect.bottom, 0)
         glEnd()
 
     def draw(self, rect: Rect):

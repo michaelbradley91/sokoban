@@ -32,6 +32,7 @@ class PlayerPiece(Piece):
 
         # To smooth the animation
         self.was_walking_previously = False
+        self.last_draw_position = 0, 0
 
     def react_to_piece_move(self, piece: "Piece") -> bool:
         """
@@ -79,10 +80,15 @@ class PlayerPiece(Piece):
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
         self.was_walking_previously = False
         if not self.animation or self.animation.is_finished:
-            self.resources.player[self.direction][0].draw(self.get_rect_at_coordinate(grid_offset, square_size))
+            rect = self.get_rect_at_coordinate(grid_offset, square_size)
+            print(rect.x - self.last_draw_position[0], rect.y - self.last_draw_position[1], rect)
+            self.last_draw_position = rect.x, rect.y
+            self.resources.player[self.direction][0].draw(rect)
         elif isinstance(self.animation, PlayerAnimation):
             self.was_walking_previously = True
             animation_status = self.animation.calculate(grid_offset, square_size)
+            print(animation_status.rect.x - self.last_draw_position[0], animation_status.rect.y - self.last_draw_position[1], animation_status.rect)
+            self.last_draw_position = animation_status.rect.x, animation_status.rect.y
             self.resources.player[self.direction][animation_status.image_index].draw(animation_status.rect)
         elif isinstance(self.animation, StaticAnimation):
             rect = self.get_rect_at_coordinate(grid_offset, square_size)
