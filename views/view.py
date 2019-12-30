@@ -79,8 +79,19 @@ class View(UsesAppContainer, ABC, Generic[T, S]):
         pass
 
     @abstractmethod
-    def draw(self):
-        """ Draw the view on screen. A top level view like this should occupy the whole screen. """
+    def draw_static(self):
+        """
+        Draw the static components of the view.
+        These can take "a while" to draw without hurting animation accuracy.
+        """
+        pass
+
+    @abstractmethod
+    def draw_animated(self):
+        """
+        Draw the animated components of the view.
+        These should be drawn as quickly as possible to improve the accuracy of animation.
+        """
         pass
 
 

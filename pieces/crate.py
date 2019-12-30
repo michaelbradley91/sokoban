@@ -24,6 +24,7 @@ class CratePiece(Piece):
         super().__init__(grid, app_container)
         self.animation: Optional[CrateAnimation] = None
         self.was_moving_previously = False
+        self.animating = False
 
     def react_to_piece_move(self, piece: "Piece") -> bool:
         """
@@ -51,11 +52,9 @@ class CratePiece(Piece):
             # Reuse the previous animation
             new_finish = self.animation.finish_position + (coordinate - old_coordinate)
             self.animation.travel_time += WALK_SPEED
-            old_start_time = self.animation.start_time
             self.animation.finish_position = new_finish
             self.animation.un_finish()
             self.animator.add_animation(self.animation)
-            self.animation.start_time = old_start_time
         else:
             self.animation = CrateAnimation(old_coordinate, coordinate)
             self.animator.add_animation(self.animation)
@@ -67,10 +66,14 @@ class CratePiece(Piece):
         return True
 
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
-        if not self.animation or self.animation.is_finished:
+        if (not self.animation or self.animation.is_finished) and not self.animating:
             self.was_moving_previously = False
             self.resources.crate.draw(self.get_rect_at_coordinate(grid_offset, square_size))
         else:
+            if self.animation:
+                self.animating = True
+            else:
+                self.animating = False
             self.was_moving_previously = True
             animation_status = self.animation.calculate(grid_offset, square_size)
             self.resources.crate.draw(animation_status.rect)

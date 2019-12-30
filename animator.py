@@ -48,14 +48,14 @@ class Animator:
         self.__current_animations.remove(animation)
         animation.cancel()
 
-    def run_animations(self):
+    def run_animations(self, time_elapsed: int):
         """
         Run all of the animations. Animations can finish after being run.
         :return: nothing
         """
         remaining_animations = []
         for index, animation in enumerate(self.__current_animations):
-            finished = animation.animate()
+            finished = animation.animate(time_elapsed)
             if not finished:
                 remaining_animations.append(animation)
         self.__current_animations = remaining_animations

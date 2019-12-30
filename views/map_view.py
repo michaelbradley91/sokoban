@@ -65,6 +65,7 @@ class MapView(View[MapViewParameters, MapViewModel]):
         self.square_layout: Optional[BasicLayout] = None
         self.you_win_layout: Optional[BasicLayout] = None
         self.you_win: Optional[pygame.SurfaceType] = None
+        self.background_drawn = False
 
     def init(self):
         # Build the layout for the page
@@ -90,13 +91,15 @@ class MapView(View[MapViewParameters, MapViewModel]):
         self.layout.set_layout(aspect_layout)
 
     def pre_event_loop(self):
+        pass
+
+    def post_event_loop(self):
         if self.model.players_can_move:
             pressed_keys = pygame.key.get_pressed()
             move = try_get_move_from_key(pressed_keys)
             if move:
                 self.move_players(move)
 
-    def post_event_loop(self):
         if not self.model.map_won:
             self.model.check_win()
 
@@ -160,13 +163,23 @@ class MapView(View[MapViewParameters, MapViewModel]):
             # Only allow one key to be processed at once
             return False
 
-    def draw(self):
+    def draw_static(self):
+        # if not self.background_drawn:
         set_background_and_clear(BACKGROUND_COLOUR)
+            # self.background_drawn = True
 
-        for piece_type in PIECE_DRAW_ORDER:
+        for piece_type in [p for p in PIECE_DRAW_ORDER if p not in [PlayerPiece, CratePiece]]:
             for piece in self.grid.get_pieces_of_type(piece_type):
                 piece.draw(self.grid_layout.bounding_rect.topleft, self.square_size)
 
+    def draw_animated(self):
+        for piece in self.grid.get_pieces_of_type(CratePiece):
+            piece.draw(self.grid_layout.bounding_rect.topleft, self.square_size)
+
+        for piece in self.grid.get_pieces_of_type(PlayerPiece):
+            piece.draw(self.grid_layout.bounding_rect.topleft, self.square_size)
+
+        # TODO: use z values to handle draw order and draw this in the static draw method
         if self.model.map_won:
             self.draw_you_win()
 

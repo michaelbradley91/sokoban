@@ -275,7 +275,7 @@ class StartView(View[StartViewParameters, StartViewModel]):
                 elif event.key == pygame.K_UP:
                     self.model.go_up_one_menu_option()
 
-    def draw(self):
+    def draw_static(self):
         for m, margin_layout in self.menu_margin_layouts.items():
             if self.model.menu_option_selected == m:
                 margin_layout.set_margin((0, 1 / 7))
@@ -286,7 +286,7 @@ class StartView(View[StartViewParameters, StartViewModel]):
         set_background_and_clear(BACKGROUND_COLOUR)
 
         # Draw the grid
-        for piece_type in PIECE_DRAW_ORDER:
+        for piece_type in [p for p in PIECE_DRAW_ORDER if p not in [PlayerPiece, CratePiece]]:
             for piece in self.grid.get_pieces_of_type(piece_type):
                 piece.draw(self.grid_layout.bounding_rect.topleft, self.square_size)
 
@@ -301,6 +301,13 @@ class StartView(View[StartViewParameters, StartViewModel]):
         draw_text_with_border(self.resources.title_font, START_VIEW_TITLE, TITLE_COLOUR,
                               self.title_layout.bounding_rect, TITLE_SHADOW_COLOUR,
                               self.title_layout.bounding_rect.width / 120)
+
+    def draw_animated(self):
+        for piece in self.grid.get_pieces_of_type(CratePiece):
+            piece.draw(self.grid_layout.bounding_rect.topleft, self.square_size)
+
+        for piece in self.grid.get_pieces_of_type(PlayerPiece):
+            piece.draw(self.grid_layout.bounding_rect.topleft, self.square_size)
 
     @property
     def square_size(self):

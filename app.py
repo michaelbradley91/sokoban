@@ -105,16 +105,17 @@ class App(AppContainer, Navigator):
 
         self.__current_view.on_events(events)
 
-    def pre_event_loop(self):
-        self.__animator.run_animations()
+    def pre_event_loop(self, time_elapsed: int):
         self.__current_view.pre_event_loop()
 
     def post_event_loop(self):
         self.__current_view.post_event_loop()
 
-    def draw(self):
-        self.__current_view.draw()
-        pygame.display.flip()
+    def draw_static(self):
+        self.__current_view.draw_static()
+
+    def draw_animated(self):
+        self.__current_view.draw_animated()
 
     def quit(self):
         self._keep_running = False
@@ -124,14 +125,18 @@ class App(AppContainer, Navigator):
         pygame.quit()
 
     def on_execute(self):
+        time_elapsed = 0
         if not self.on_init():
             self._keep_running = False
         while self._keep_running:
-            self.pre_event_loop()
+            self.pre_event_loop(time_elapsed)
             self.on_events(list(pygame.event.get()))
             self.post_event_loop()
-            self.draw()
-            print(self.__clock.tick_busy_loop(60), pygame.time.get_ticks())
+            self.draw_static()
+            time_elapsed = self.__clock.tick(60)
+            self.__animator.run_animations(time_elapsed)
+            self.draw_animated()
+            pygame.display.flip()
 
         App.on_clean_up()
 

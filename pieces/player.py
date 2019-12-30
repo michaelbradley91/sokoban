@@ -33,6 +33,7 @@ class PlayerPiece(Piece):
         # To smooth the animation
         self.was_walking_previously = False
         self.last_draw_position = 0, 0
+        self.animating = False
 
     def react_to_piece_move(self, piece: "Piece") -> bool:
         """
@@ -62,11 +63,9 @@ class PlayerPiece(Piece):
             # Reuse the previous animation
             new_finish = self.animation.finish_position + coordinate_change
             self.animation.travel_time += WALK_SPEED
-            old_start_time = self.animation.start_time
             self.animation.finish_position = new_finish
             self.animation.un_finish()
             self.animator.add_animation(self.animation)
-            self.animation.start_time = old_start_time
         else:
             self.animation = PlayerAnimation(len(self.resources.player[self.direction]), old_coordinate, coordinate)
             self.animator.add_animation(self.animation)
@@ -79,12 +78,16 @@ class PlayerPiece(Piece):
 
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
         self.was_walking_previously = False
-        if not self.animation or self.animation.is_finished:
+        if (not self.animation or self.animation.is_finished) and not self.animating:
             rect = self.get_rect_at_coordinate(grid_offset, square_size)
             # print(rect.x - self.last_draw_position[0], rect.y - self.last_draw_position[1], rect)
             self.last_draw_position = rect.x, rect.y
             self.resources.player[self.direction][0].draw(rect)
-        elif isinstance(self.animation, PlayerAnimation):
+        elif isinstance(self.animation, PlayerAnimation) or self.animating:
+            if not isinstance(self.animation, PlayerAnimation):
+                self.animating = False
+            else:
+                self.animating = True
             self.was_walking_previously = True
             animation_status = self.animation.calculate(grid_offset, square_size)
             # print(animation_status.rect.x - self.last_draw_position[0], animation_status.rect.y - self.last_draw_position[1], animation_status.rect)

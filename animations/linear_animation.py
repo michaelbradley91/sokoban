@@ -42,13 +42,13 @@ class LinearAnimation(Animation):
         Note: the images are played in the order they are passed in.
         The first image is assumed to be the final image.
         """
-        super().__init__(lambda: self.update().finished, self.stop)
+        super().__init__(lambda time_elapsed: self.update(time_elapsed).finished, self.stop)
         self.start_position = start
         self.finish_position = finish
         self.__number_of_images = number_of_images
         self.travel_time = travel_time
         self.__image_time = image_time
-        self.start_time = None
+        self.total_time_elapsed = 0
         self.__status: LinearAnimationState = LinearAnimationState(
             finished=False,
             image_index=0,
@@ -56,7 +56,7 @@ class LinearAnimation(Animation):
         )
 
     def start(self):
-        self.start_time = pygame.time.get_ticks()
+        pass
 
     def un_finish(self):
         self.__status = self.__status._replace(finished=False)
@@ -68,7 +68,7 @@ class LinearAnimation(Animation):
             finished=True
         )
 
-    def update(self) -> LinearAnimationState:
+    def update(self, time_elapsed: int) -> LinearAnimationState:
         """
         Update the animation status. Returns
         :return: the new linear animation status
@@ -76,11 +76,10 @@ class LinearAnimation(Animation):
         if self.status.finished:
             return self.status
 
-        if not self.start_time:
-            self.start_time = pygame.time.get_ticks()
+        self.total_time_elapsed += time_elapsed
 
         now = pygame.time.get_ticks()
-        percentage_travelled = (now - self.start_time) / self.travel_time
+        percentage_travelled = self.total_time_elapsed / self.travel_time
 
         if percentage_travelled >= 0.99999:
             # Done!
@@ -98,7 +97,7 @@ class LinearAnimation(Animation):
         new_y = self.start_position.y + (vector.y * percentage_travelled)
 
         # Calculate the image to display
-        image_to_show = int(((now - self.start_time)) / self.__image_time) % self.__number_of_images
+        image_to_show = int(self.total_time_elapsed / self.__image_time) % self.__number_of_images
 
         self.__status = LinearAnimationState(
             position=(new_x, new_y),
@@ -115,11 +114,6 @@ class LinearAnimation(Animation):
         :param square_size: the size of each square (i.e.: a single coordinate)
         :return: the linear animation status
         """
-
-        self.update()
-        if not self.start_time:
-            self.start_time = pygame.time.get_ticks()
-
         position = self.status.position
         # print(position)
         new_x = grid_offset[0] + (position[0] * square_size)
