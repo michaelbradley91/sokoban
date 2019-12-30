@@ -1,6 +1,8 @@
+import sys
 from typing import Optional, List, Tuple
 
 import pygame
+from OpenGL.raw.WGL.EXT import swap_control
 from pygame.event import EventType
 from pygame.time import Clock
 
@@ -10,12 +12,16 @@ from layouts.layout import BasicLayout
 from music_player import initialise_mixer, MusicPlayer
 from navigator import Navigator
 from opengl_support.helpers import init_opengl
+from opengl_support.monkey_patching import monkey_patch
 from resources import Resources, find_resource
 from undo import UndoManager
 from views.start_view import StartView, StartViewParameters
 from views.view import View
 
 DEFAULT_WINDOW_SIZE = 640, 704
+
+
+monkey_patch()
 
 
 class App(AppContainer, Navigator):
@@ -46,6 +52,11 @@ class App(AppContainer, Navigator):
         self.__resources = Resources(display)
         self.__music_player = MusicPlayer(self.__resources, self.__undo_manager)
         self.go_to_view(StartView, StartViewParameters())
+
+        # Turn on vsync if possible
+        if sys.platform == "win32":
+            swap_control.wglSwapIntervalEXT(True)
+
         self.restart_opengl()
         return True
 
@@ -120,7 +131,7 @@ class App(AppContainer, Navigator):
             self.on_events(list(pygame.event.get()))
             self.post_event_loop()
             self.draw()
-            self.__clock.tick(60)
+            print(self.__clock.tick_busy_loop(60), pygame.time.get_ticks())
 
         App.on_clean_up()
 

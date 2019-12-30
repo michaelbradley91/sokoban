@@ -93,7 +93,7 @@ class LinearAnimation(Animation):
 
         # Calculate the distance moved
         vector = self.finish_position - self.start_position
-        print(percentage_travelled)
+        # print(percentage_travelled)
         new_x = self.start_position.x + (vector.x * percentage_travelled)
         new_y = self.start_position.y + (vector.y * percentage_travelled)
 
@@ -115,14 +115,17 @@ class LinearAnimation(Animation):
         :param square_size: the size of each square (i.e.: a single coordinate)
         :return: the linear animation status
         """
+
+        self.update()
         if not self.start_time:
             self.start_time = pygame.time.get_ticks()
 
         position = self.status.position
-        print(position)
+        # print(position)
         new_x = grid_offset[0] + (position[0] * square_size)
         new_y = grid_offset[1] + (position[1] * square_size)
-        print(new_x, new_y)
+        # print(new_y, pygame.time.get_ticks())
+        # print(new_x, new_y)
         rect = Rect((new_x, new_y), (square_size, square_size))
         image_index = self.status.image_index
         return LinearAnimationResult(
