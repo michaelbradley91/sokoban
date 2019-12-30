@@ -23,6 +23,7 @@ from pieces.player import PlayerPiece
 from resources import Resources
 from text import MAP_VIEW_YOU_WIN
 from undo import UndoManager
+from views.start_view import StartView
 from views.view import View, ViewModel
 
 
@@ -157,6 +158,10 @@ class MapView(View[MapViewParameters, MapViewModel]):
             if 0 <= map_index < len(MAPS):
                 self.navigator.go_to_view(MapView, MapViewParameters(map_index=map_index))
                 return False
+
+            if event.key == pygame.K_m:
+                from views.start_view import StartViewParameters
+                self.navigator.go_to_view(StartView, StartViewParameters())
 
             # Only allow one key to be processed at once
             return False

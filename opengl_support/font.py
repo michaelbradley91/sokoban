@@ -5,7 +5,7 @@ import pygame
 from OpenGL.GL import glGenTextures, glTexImage2D, GL_TEXTURE_2D, GL_RGBA, GL_UNSIGNED_BYTE, \
     glTexParameterf, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE, \
     glTexEnvi, glLoadIdentity, glBindTexture, \
-    glBegin, GL_QUADS, glTexCoord2f, glVertex3i, glEnd, GL_NEAREST, GL_LINEAR
+    glBegin, GL_QUADS, glTexCoord2f, glVertex3i, glEnd, GL_LINEAR
 from pygame.rect import Rect
 
 DEFAULT_MAX_FONT_CACHE_SIZE = 100

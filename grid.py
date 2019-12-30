@@ -4,7 +4,7 @@ from animator import Animator
 from coordinate import Coordinate
 from music_player import MusicPlayer
 
-from pieces.nothing import NothingPiece
+from pieces.floor import FloorPiece
 from pieces.wall import WallPiece
 from resources import Resources
 from undo import UndoManager
@@ -28,13 +28,13 @@ class Grid:
         self.__pieces_to_coordinates: Dict["Piece", Coordinate] = dict()
         self.__piece_types_to_pieces: Dict[type, Set["Piece"]] = dict()
 
-        self.__piece_types_to_pieces[NothingPiece] = set()
+        self.__piece_types_to_pieces[FloorPiece] = set()
         for x in range(0, width):
             for y in range(0, height):
-                nothing = NothingPiece(self, undo_manager, animator, music_player, resources)
-                self.__coordinates_to_pieces[Coordinate(x=x, y=y)] = [nothing]
-                self.__pieces_to_coordinates[nothing] = Coordinate(x=x, y=y)
-                self.__piece_types_to_pieces[type(nothing)].add(nothing)
+                floor = FloorPiece(self, undo_manager, animator, music_player, resources)
+                self.__coordinates_to_pieces[Coordinate(x=x, y=y)] = [floor]
+                self.__pieces_to_coordinates[floor] = Coordinate(x=x, y=y)
+                self.__piece_types_to_pieces[type(floor)].add(floor)
 
     @property
     def width(self) -> int:

@@ -7,8 +7,10 @@ from OpenGL.GL import glGenTextures, glBindTexture, glTexImage2D, GL_TEXTURE_2D,
     GL_QUADS, glTexCoord2f, glVertex3i, glEnd, GL_NEAREST
 from pygame.rect import Rect
 
+from opengl_support.drawable import Drawable
 
-class Texture:
+
+class Texture(Drawable):
     """
     An OpenGL texture. This should be reloaded whenever the window changes size.
     """

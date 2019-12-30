@@ -58,6 +58,7 @@ class Resources:
         self.__floor = Tile(self.tiles2, Coordinate(1, 3))
         self.__goal = Tile(self.tiles1, Coordinate(1, 3))
         self.__wall = Tile(self.tiles2, Coordinate(1, 1))
+        self.__menu_background = Tile(self.tiles2, Coordinate(0, 0))
         self.__player = self.__get_player_tiles()
 
         # Sounds
@@ -113,6 +114,10 @@ class Resources:
     @property
     def crate_sound(self) -> SoundType:
         return self.__crate_sound
+
+    @property
+    def menu_background(self) -> Tile:
+        return self.__menu_background
 
     @property
     def crate_success_sound(self) -> SoundType:

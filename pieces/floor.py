@@ -9,10 +9,11 @@ if TYPE_CHECKING:
     from grid import Grid
 
 
-class WallPiece(StaticPiece):
+class FloorPiece(StaticPiece):
     """
-    A piece representing a simple wall.
+    A piece representing the floor.
     """
+
     def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator, music_player: MusicPlayer,
                  resources: Resources):
-        super().__init__(grid, undo_manager, animator, music_player, resources, resources.wall, False)
+        super().__init__(grid, undo_manager, animator, music_player, resources, resources.floor, True)

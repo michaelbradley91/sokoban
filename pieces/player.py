@@ -1,6 +1,8 @@
 from typing import Optional, Tuple
 
+from animations.animation import Animation
 from animations.linear_animation import LinearAnimation
+from animations.static_animation import StaticAnimation
 from animator import Animator
 from coordinate import Coordinate
 from direction import Direction, coordinate_change_to_direction
@@ -30,7 +32,7 @@ class PlayerPiece(Piece):
                  music_player: MusicPlayer, resources: Resources):
         super().__init__(grid, undo_manager, animator, music_player, resources)
         self.direction = Direction.left
-        self.animation: Optional[PlayerAnimation] = None
+        self.animation: Optional[Animation] = None
 
     def react_to_piece_move(self, piece: "Piece") -> bool:
         """
@@ -60,9 +62,18 @@ class PlayerPiece(Piece):
 
         return True
 
+    def run_on_the_spot(self):
+        self.animation = StaticAnimation(len(self.resources.player[self.direction]), ANIMATION_SPEED)
+        self.animator.add_animation(self.animation)
+
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
         if not self.animation or self.animation.is_finished:
             self.resources.player[self.direction][0].draw(self.get_rect_at_coordinate(grid_offset, square_size))
-        else:
+        elif isinstance(self.animation, PlayerAnimation):
             animation_status = self.animation.calculate(grid_offset, square_size)
             self.resources.player[self.direction][animation_status.image_index].draw(animation_status.rect)
+        elif isinstance(self.animation, StaticAnimation):
+            rect = self.get_rect_at_coordinate(grid_offset, square_size)
+            self.resources.player[self.direction][self.animation.image_index].draw(rect)
+        else:
+            raise ValueError("Unknown animation type")

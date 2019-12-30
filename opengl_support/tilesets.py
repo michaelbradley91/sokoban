@@ -4,6 +4,7 @@ import pygame
 from pygame.rect import Rect
 
 from coordinate import Coordinate
+from opengl_support.drawable import Drawable
 from opengl_support.texture import Texture
 
 
@@ -50,7 +51,7 @@ class TileSet(Texture):
         super().draw_sub_rectangle(rect, sub_rect)
 
 
-class Tile:
+class Tile(Drawable):
     """
     A singled out tile from a tile set to draw.
     """
