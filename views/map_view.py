@@ -36,7 +36,7 @@ class MapViewModel(ViewModel[MapViewParameters]):
         map_definition = MAPS[self.parameters.map_index]
 
         self.undo_manager.enabled = False
-        self.grid = read_map(self.undo_manager, self.resources, self.animator, self.music_player, map_definition)
+        self.grid = read_map(self.app_container, map_definition)
         self.undo_manager.enabled = True
         self.undo_manager.save_position(PLAYER_MOVE_UNDO_LABEL)
         self.map_won = False
@@ -110,30 +110,30 @@ class MapView(View[MapViewParameters, MapViewModel]):
             if self.model.players_can_move:
                 if event.key == pygame.K_u:
                     self.undo_manager.undo(PLAYER_MOVE_UNDO_LABEL)
-                if event.key == pygame.K_r:
+                elif event.key == pygame.K_r:
                     self.undo_manager.redo(PLAYER_MOVE_UNDO_LABEL)
 
             # Patch to allow changing levels without a level menu!
             map_index = -1
             if event.key == pygame.K_1:
                 map_index = 0
-            if event.key == pygame.K_2:
+            elif event.key == pygame.K_2:
                 map_index = 1
-            if event.key == pygame.K_3:
+            elif event.key == pygame.K_3:
                 map_index = 2
-            if event.key == pygame.K_4:
+            elif event.key == pygame.K_4:
                 map_index = 3
-            if event.key == pygame.K_5:
+            elif event.key == pygame.K_5:
                 map_index = 4
-            if event.key == pygame.K_6:
+            elif event.key == pygame.K_6:
                 map_index = 5
-            if event.key == pygame.K_7:
+            elif event.key == pygame.K_7:
                 map_index = 6
-            if event.key == pygame.K_8:
+            elif event.key == pygame.K_8:
                 map_index = 7
-            if event.key == pygame.K_9:
+            elif event.key == pygame.K_9:
                 map_index = 8
-            if event.key == pygame.K_0:
+            elif event.key == pygame.K_0:
                 map_index = 9
 
             if pygame.key.get_mods() & pygame.KMOD_SHIFT and map_index >= 0:

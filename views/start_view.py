@@ -269,10 +269,10 @@ class StartView(View[StartViewParameters, StartViewModel]):
                     self.menu_actions[self.model.menu_option_selected]()
                     return
 
-                if event.key == pygame.K_DOWN:
+                elif event.key == pygame.K_DOWN:
                     self.model.go_down_one_menu_option()
 
-                if event.key == pygame.K_UP:
+                elif event.key == pygame.K_UP:
                     self.model.go_up_one_menu_option()
 
     def draw(self):
