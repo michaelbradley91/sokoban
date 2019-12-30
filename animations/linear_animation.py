@@ -42,25 +42,27 @@ class LinearAnimation(Animation):
         The first image is assumed to be the final image.
         """
         super().__init__(lambda: self.update().finished, self.stop)
-        self.__start = start
-        self.__finish = finish
+        self.start_position = start
+        self.finish_position = finish
         self.__number_of_images = number_of_images
-        self.__travel_time = travel_time
+        self.travel_time = travel_time
         self.__image_time = image_time
-        self.__start_time = None
+        self.start_time = None
         self.__status: LinearAnimationState = LinearAnimationState(
             finished=False,
             image_index=0,
-            position=(self.__start.x, self.__start.y)
+            position=(self.start_position.x, self.start_position.y)
         )
-        self.__vector = finish - start
 
     def start(self):
-        self.__start_time = time()
+        self.start_time = time()
+
+    def un_finish(self):
+        self.__status = self.__status._replace(finished=False)
 
     def stop(self):
         self.__status = LinearAnimationState(
-            position=(self.__finish.x, self.__finish.y),
+            position=(self.finish_position.x, self.finish_position.y),
             image_index=0,
             finished=True
         )
@@ -73,27 +75,28 @@ class LinearAnimation(Animation):
         if self.status.finished:
             return self.status
 
-        if not self.__start_time:
-            self.__start_time = time()
+        if not self.start_time:
+            self.start_time = time()
 
         now = time()
-        percentage_travelled = ((now - self.__start_time) * 1000) / self.__travel_time
+        percentage_travelled = ((now - self.start_time) * 1000) / self.travel_time
 
         if percentage_travelled >= 0.99999:
             # Done!
             self.__status = LinearAnimationState(
-                position=(self.__finish.x, self.__finish.y),
+                position=(self.finish_position.x, self.finish_position.y),
                 image_index=0,
                 finished=True
             )
             return self.__status
 
         # Calculate the distance moved
-        new_x = self.__start.x + (self.__vector.x * percentage_travelled)
-        new_y = self.__start.y + (self.__vector.y * percentage_travelled)
+        vector = self.finish_position - self.start_position
+        new_x = self.start_position.x + (vector.x * percentage_travelled)
+        new_y = self.start_position.y + (vector.y * percentage_travelled)
 
         # Calculate the image to display
-        image_to_show = int(((now - self.__start_time) * 1000) / self.__image_time) % self.__number_of_images
+        image_to_show = int(((now - self.start_time) * 1000) / self.__image_time) % self.__number_of_images
 
         self.__status = LinearAnimationState(
             position=(new_x, new_y),
@@ -110,8 +113,8 @@ class LinearAnimation(Animation):
         :param square_size: the size of each square (i.e.: a single coordinate)
         :return: the linear animation status
         """
-        if not self.__start_time:
-            self.__start_time = time()
+        if not self.start_time:
+            self.start_time = time()
 
         position = self.status.position
         new_x = grid_offset[0] + int(position[0] * square_size)

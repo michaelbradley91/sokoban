@@ -30,6 +30,9 @@ class PlayerPiece(Piece):
         self.direction = Direction.left
         self.animation: Optional[Animation] = None
 
+        # To smooth the animation
+        self.was_walking_previously = False
+
     def react_to_piece_move(self, piece: "Piece") -> bool:
         """
         Nothing is allowed to actually move the player
@@ -53,8 +56,19 @@ class PlayerPiece(Piece):
         if not super().move(coordinate):
             return False
 
-        self.animation = PlayerAnimation(len(self.resources.player[self.direction]), old_coordinate, coordinate)
-        self.animator.add_animation(self.animation)
+        if self.was_walking_previously and isinstance(self.animation, PlayerAnimation) and \
+                old_direction == new_direction:
+            # Reuse the previous animation
+            new_finish = self.animation.finish_position + coordinate_change
+            self.animation.travel_time += WALK_SPEED
+            old_start_time = self.animation.start_time
+            self.animation.finish_position = new_finish
+            self.animation.un_finish()
+            self.animator.add_animation(self.animation)
+            self.animation.start_time = old_start_time
+        else:
+            self.animation = PlayerAnimation(len(self.resources.player[self.direction]), old_coordinate, coordinate)
+            self.animator.add_animation(self.animation)
 
         return True
 
@@ -63,9 +77,11 @@ class PlayerPiece(Piece):
         self.animator.add_animation(self.animation)
 
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
+        self.was_walking_previously = False
         if not self.animation or self.animation.is_finished:
             self.resources.player[self.direction][0].draw(self.get_rect_at_coordinate(grid_offset, square_size))
         elif isinstance(self.animation, PlayerAnimation):
+            self.was_walking_previously = True
             animation_status = self.animation.calculate(grid_offset, square_size)
             self.resources.player[self.direction][animation_status.image_index].draw(animation_status.rect)
         elif isinstance(self.animation, StaticAnimation):
