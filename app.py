@@ -1,4 +1,6 @@
 import sys
+from queue import Queue
+from threading import Thread
 from time import sleep
 from typing import Optional, List, Tuple
 
@@ -56,8 +58,8 @@ class App(AppContainer, Navigator):
         self.go_to_view(StartView, StartViewParameters())
 
         # Turn on vsync if possible
-        # if sys.platform == "win32":
-        #     swap_control.wglSwapIntervalEXT(True)
+        if sys.platform == "win32":
+            swap_control.wglSwapIntervalEXT(True)
 
         self.restart_opengl()
         return True
@@ -107,7 +109,7 @@ class App(AppContainer, Navigator):
 
         self.__current_view.on_events(events)
 
-    def pre_event_loop(self, time_elapsed: int):
+    def pre_event_loop(self):
         self.__current_view.pre_event_loop()
 
     def post_event_loop(self):
@@ -127,24 +129,60 @@ class App(AppContainer, Navigator):
         pygame.quit()
 
     def on_execute(self):
-        self.last_call = pygame.time.get_ticks()
-        time_elapsed = 0
+        # self.last_call = pygame.time.get_ticks
         previous_time = pygame.time.get_ticks()
-        total = 0
+        queue = Queue(maxsize=1)
+
+        def just_tick(tick_queue, clock, display):
+
+            def custom_ticks(last_call):
+                start = pygame.time.get_ticks()
+                start_duration = start - last_call
+                # print(start_duration)
+                # print("s:", start)
+                target_delay = int(1000 / 60) - start_duration
+                # print("Target:", target_delay)
+                next_delay = target_delay - (pygame.time.get_ticks() - start)
+                while next_delay > 0:
+                    if next_delay > 3:
+                        # print("Sleeping")
+                        sleep((next_delay - 2) / 1000)
+                    next_delay = target_delay - (pygame.time.get_ticks() - start)
+                last_call = pygame.time.get_ticks()
+                return (last_call - start) + start_duration
+
+            last_call = pygame.time.get_ticks()
+            while True:
+                if display.get_flags() & pygame.FULLSCREEN:
+                    # print("Full screen!")
+                    tick_queue.put(0)
+                else:
+
+                    tick_queue.put(custom_ticks(last_call))
+                    last_call = pygame.time.get_ticks()
+
         if not self.on_init():
             self._keep_running = False
+
+        tick_thread = Thread(target=just_tick, args=[queue, self.__clock, self.__resources.display])
+        tick_thread.start()
+
+        time_elapsed = 0
+        total = 0
+
         while self._keep_running:
-            self.pre_event_loop(time_elapsed)
-            self.on_events(list(pygame.event.get()))
+            events = list(pygame.event.get())
+            self.pre_event_loop()
+            self.on_events(events)
             self.post_event_loop()
             self.draw_static()
-            time_elapsed = self.custom_ticks()
-            # time_elapsed = self.__clock.tick(0)
+            if not self.resources.display.get_flags() & pygame.FULLSCREEN:
+                queue.get()
+            # time_elapsed = self.__clock.tick(60)
             # time_elapsed = self.__clock.tick_busy_loop(60)
-            # next_time = pygame.time.get_ticks()
-
-            # time_elapsed = next_time - previous_time
-            # previous_time = next_time
+            next_time = pygame.time.get_ticks()
+            time_elapsed = next_time - previous_time
+            previous_time = next_time
             if time_elapsed > 20:
                 total += 1
                 print("t:", total, time_elapsed)
@@ -153,22 +191,6 @@ class App(AppContainer, Navigator):
             pygame.display.flip()
 
         App.on_clean_up()
-
-    def custom_ticks(self):
-        start = pygame.time.get_ticks()
-        start_duration = start - self.last_call
-        # print(start_duration)
-        # print("s:", start)
-        target_delay = int(1000 / 60) - start_duration
-        # print("Target:", target_delay)
-        next_delay = target_delay - (pygame.time.get_ticks() - start)
-        while next_delay > 0:
-            if next_delay > 3:
-                # print("Sleeping")
-                sleep((next_delay - 2) / 1000)
-            next_delay = target_delay - (pygame.time.get_ticks() - start)
-        self.last_call = pygame.time.get_ticks()
-        return (self.last_call - start) + start_duration
 
 
     def restart_opengl(self):
