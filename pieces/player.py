@@ -17,7 +17,7 @@ ANIMATION_SPEED = 100
 
 class PlayerAnimation(LinearAnimation):
     def __init__(self, number_of_images: int, start: Coordinate, finish: Coordinate):
-        super().__init__(start, finish, number_of_images, WALK_SPEED, ANIMATION_SPEED)
+        super().__init__(start, finish, 1, WALK_SPEED, ANIMATION_SPEED)
 
 
 class PlayerPiece(Piece):
@@ -84,7 +84,7 @@ class PlayerPiece(Piece):
             self.last_draw_position = rect.x, rect.y
             self.resources.player[self.direction][0].draw(rect)
         elif isinstance(self.animation, PlayerAnimation) or self.animating:
-            if not isinstance(self.animation, PlayerAnimation):
+            if not self.animation or self.animation.is_finished:
                 self.animating = False
             else:
                 self.animating = True
@@ -92,6 +92,7 @@ class PlayerPiece(Piece):
             animation_status = self.animation.calculate(grid_offset, square_size)
             # print(animation_status.rect.x - self.last_draw_position[0], animation_status.rect.y - self.last_draw_position[1], animation_status.rect)
             self.last_draw_position = animation_status.rect.x, animation_status.rect.y
+            print("y: ", animation_status.rect.y)
             self.resources.player[self.direction][animation_status.image_index].draw(animation_status.rect)
         elif isinstance(self.animation, StaticAnimation):
             rect = self.get_rect_at_coordinate(grid_offset, square_size)

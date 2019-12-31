@@ -2,6 +2,7 @@ import sys
 from typing import Optional, List, Tuple
 
 import pygame
+import pyglet
 from OpenGL.raw.WGL.EXT import swap_control
 from pygame.event import EventType
 from pygame.time import Clock
@@ -125,6 +126,7 @@ class App(AppContainer, Navigator):
         pygame.quit()
 
     def on_execute(self):
+        self.last_call = pygame.time.get_ticks()
         time_elapsed = 0
         if not self.on_init():
             self._keep_running = False
@@ -133,12 +135,25 @@ class App(AppContainer, Navigator):
             self.on_events(list(pygame.event.get()))
             self.post_event_loop()
             self.draw_static()
-            time_elapsed = self.__clock.tick(60)
+            time_elapsed = self.custom_ticks()
+            # print("t:", time_elapsed)
             self.__animator.run_animations(time_elapsed)
             self.draw_animated()
             pygame.display.flip()
 
         App.on_clean_up()
+
+    def custom_ticks(self):
+        start = pygame.time.get_ticks()
+        start_duration = start - self.last_call
+        # print(start_duration)
+        # print("s:", start)
+        target_delay = int(1000 / 60) - start_duration
+        while target_delay - (pygame.time.get_ticks() - start) > 0:
+            pass
+        self.last_call = pygame.time.get_ticks()
+        return (self.last_call - start) + start_duration
+
 
     def restart_opengl(self):
         init_opengl(self.__resources.display)

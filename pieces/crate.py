@@ -70,10 +70,10 @@ class CratePiece(Piece):
             self.was_moving_previously = False
             self.resources.crate.draw(self.get_rect_at_coordinate(grid_offset, square_size))
         else:
-            if self.animation:
-                self.animating = True
-            else:
+            if not self.animation or self.animation.is_finished:
                 self.animating = False
+            else:
+                self.animating = True
             self.was_moving_previously = True
             animation_status = self.animation.calculate(grid_offset, square_size)
             self.resources.crate.draw(animation_status.rect)

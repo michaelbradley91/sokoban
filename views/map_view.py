@@ -65,7 +65,7 @@ class MapView(View[MapViewParameters, MapViewModel]):
         self.square_layout: Optional[BasicLayout] = None
         self.you_win_layout: Optional[BasicLayout] = None
         self.you_win: Optional[pygame.SurfaceType] = None
-        self.background_drawn = False
+        self.background_drawn = 0
 
     def init(self):
         # Build the layout for the page
@@ -164,9 +164,9 @@ class MapView(View[MapViewParameters, MapViewModel]):
             return False
 
     def draw_static(self):
-        # if not self.background_drawn:
-        set_background_and_clear(BACKGROUND_COLOUR)
-            # self.background_drawn = True
+        if self.background_drawn < 2:
+            set_background_and_clear(BACKGROUND_COLOUR)
+            self.background_drawn += 1
 
         for piece_type in [p for p in PIECE_DRAW_ORDER if p not in [PlayerPiece, CratePiece]]:
             for piece in self.grid.get_pieces_of_type(piece_type):

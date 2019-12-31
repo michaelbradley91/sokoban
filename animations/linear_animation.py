@@ -81,15 +81,6 @@ class LinearAnimation(Animation):
         now = pygame.time.get_ticks()
         percentage_travelled = self.total_time_elapsed / self.travel_time
 
-        if percentage_travelled >= 0.99999:
-            # Done!
-            self.__status = LinearAnimationState(
-                position=(self.finish_position.x, self.finish_position.y),
-                image_index=0,
-                finished=True
-            )
-            return self.__status
-
         # Calculate the distance moved
         vector = self.finish_position - self.start_position
         # print(percentage_travelled)
@@ -102,7 +93,7 @@ class LinearAnimation(Animation):
         self.__status = LinearAnimationState(
             position=(new_x, new_y),
             image_index=image_to_show,
-            finished=False
+            finished=percentage_travelled >= 0.99999
         )
         return self.__status
 
