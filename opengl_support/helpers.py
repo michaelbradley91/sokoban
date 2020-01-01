@@ -5,7 +5,8 @@ from OpenGL.GL import GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T, glLoa
     glBlendFuncSeparate, glClearColor, GL_ONE, GL_PROJECTION, glMatrixMode, glOrtho, GL_MODELVIEW, GL_COLOR_BUFFER_BIT, \
     GL_DEPTH_BUFFER_BIT, glClear
 from pygame.surface import SurfaceType
-
+from OpenGL.raw.WGL.EXT import swap_control as wgl_swap_control
+from OpenGL.raw.GLX.EXT import swap_control as glx_swap_control
 
 DEFAULT_BACKGROUND_COLOUR = pygame.Color("black")
 
@@ -55,3 +56,28 @@ def set_background_and_clear(colour: pygame.Color):
     """
     glClearColor(colour.r / 255, colour.g / 255, colour.b / 255, 1.0)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+
+# noinspection PyBroadException
+def try_enable_vsync() -> bool:
+    """
+    Tries to enable vsync.
+    Note that the refresh rate is hard to get, so it is easier to just start
+    measuring it manually and throttle if needed.
+    :return: True if vsync might be enabled, and false otherwise.
+    """
+    # In case platforms support unexpected extensions, just try everything and
+    # catch errors if they occur...
+    try:
+        glx_swap_control.glXSwapIntervalEXT(True)
+        return True
+    except BaseException:
+        pass
+
+    try:
+        wgl_swap_control.wglSwapIntervalEXT(True)
+        return True
+    except BaseException:
+        pass
+
+    return False
