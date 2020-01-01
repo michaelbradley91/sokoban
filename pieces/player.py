@@ -71,6 +71,7 @@ class PlayerPiece(Piece):
             self.resources.player[self.direction][0].draw(self.get_rect_at_coordinate(grid_offset, square_size))
         elif isinstance(self.animation, PlayerAnimation):
             animation_status = self.animation.calculate(grid_offset, square_size)
+            print("y:", animation_status.rect.y)
             self.resources.player[self.direction][animation_status.image_index].draw(animation_status.rect)
         elif isinstance(self.animation, StaticAnimation):
             rect = self.get_rect_at_coordinate(grid_offset, square_size)
