@@ -40,7 +40,7 @@ class GridLayout(Layout):
         if column_span <= 0:
             raise ValueError("Cannot span less than one column")
         if position.x + column_span > self.grid_width or position.y + row_span > self.grid_height:
-            raise ValueError("Out of bounds")
+            raise ValueError(f"Out of bounds: position: {position} column span: {column_span} row span: {row_span}")
 
         self.layouts[layout] = position, row_span, column_span
 

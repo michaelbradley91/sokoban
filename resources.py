@@ -1,13 +1,16 @@
-from typing import Dict, Tuple, Optional
+import os
+import sys
+from typing import Dict, List, Tuple, Optional
 
 import pygame
-import sys
-import os
 from pygame import SurfaceType
 from pygame.mixer import SoundType
-from opengl_support.helpers import load_texture_to_surface
-from opengl_support.tilesets import TileSet
+
+from constants.direction import Direction
+from coordinate import Coordinate
 from opengl_support.font import Font
+from opengl_support.helpers import load_texture_to_surface
+from opengl_support.tilesets import TileSet, Tile
 
 
 def find_resource(path):
@@ -45,18 +48,35 @@ class Resources:
     A collection for all the games resources
     """
     def __init__(self, display: SurfaceType):
+        # Tile sets
         self.__tiles1 = TileSet(load_texture_to_surface(find_resource("resources/sokoban_tilesheet.png")), (128, 128))
         self.__tiles2 = TileSet(load_texture_to_surface(find_resource("resources/sokoban_tilesheet2.png")), (64, 64),
                                 tiles_wide=6, tiles_high=6)
         self.__tiles3 = TileSet(load_texture_to_surface(find_resource("resources/sokoban_tilesheet3.png")), (128, 128))
+
+        # Tiles
+        self.__crate = Tile(self.tiles1, Coordinate(1, 0))
+        self.__floor = Tile(self.tiles2, Coordinate(1, 3))
+        self.__goal = Tile(self.tiles1, Coordinate(1, 3))
+        self.__wall = Tile(self.tiles2, Coordinate(1, 1))
+        self.__menu_background = Tile(self.tiles2, Coordinate(0, 0))
+        self.__player = self.__get_player_tiles()
+
+        # Sounds
         self.__crate_sound = pygame.mixer.Sound(find_resource("resources/crate_sound.wav"))
-        self.__you_win_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 256))
         self.__coin_sound = pygame.mixer.Sound(find_resource("resources/mario coin.wav"))
         self.__crate_success_sound = self.__coin_sound
         self.__win_sound = pygame.mixer.Sound(find_resource("resources/Ta Da-SoundBible.com-1884170640.wav"))
+
+        # Fonts
+        self.__title_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 128))
+        self.__menu_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 24))
+        self.__you_win_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 32))
+
+        # Display
         self.display = display
 
-    def reload_textures(self):
+    def reload(self):
         """
         On some events such as a window resize, the textures must be reloaded.
         This method reloads all textures immediately.
@@ -64,6 +84,8 @@ class Resources:
         self.tiles1.reload()
         self.tiles2.reload()
         self.tiles3.reload()
+        self.title_font.reload()
+        self.menu_font.reload()
         self.you_win_font.reload()
 
     @property
@@ -79,12 +101,24 @@ class Resources:
         return self.__tiles3
 
     @property
+    def title_font(self):
+        return self.__title_font
+
+    @property
+    def menu_font(self):
+        return self.__menu_font
+
+    @property
     def you_win_font(self) -> Font:
         return self.__you_win_font
 
     @property
     def crate_sound(self) -> SoundType:
         return self.__crate_sound
+
+    @property
+    def menu_background(self) -> Tile:
+        return self.__menu_background
 
     @property
     def crate_success_sound(self) -> SoundType:
@@ -97,3 +131,33 @@ class Resources:
     @property
     def win_sound(self) -> SoundType:
         return self.__win_sound
+
+    @property
+    def crate(self) -> Tile:
+        return Tile(self.tiles1, Coordinate(1, 0))
+
+    @property
+    def floor(self) -> Tile:
+        return Tile(self.tiles2, Coordinate(1, 3))
+
+    @property
+    def goal(self) -> Tile:
+        return Tile(self.tiles1, Coordinate(1, 3))
+
+    @property
+    def wall(self) -> Tile:
+        return Tile(self.tiles2, Coordinate(1, 1))
+
+    @property
+    def player(self) -> Dict[Direction, List[Tile]]:
+        return self.__player
+
+    def __get_player_tiles(self) -> Dict[Direction, List[Tile]]:
+        # Load all the player tiles into a dictionary based on direction
+        player_tiles = {Direction.left: [], Direction.right: [], Direction.down: [], Direction.up: []}
+        for phase in range(0, 3):
+            player_tiles[Direction.left].append(Tile(self.tiles3, Coordinate(3 + phase, 6)))
+            player_tiles[Direction.right].append(Tile(self.tiles3, Coordinate(phase, 6)))
+            player_tiles[Direction.up].append(Tile(self.tiles3, Coordinate(3 + phase, 4)))
+            player_tiles[Direction.down].append(Tile(self.tiles3, Coordinate(phase, 4)))
+        return player_tiles

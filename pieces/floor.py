@@ -7,9 +7,10 @@ if TYPE_CHECKING:
     from grid import Grid
 
 
-class WallPiece(StaticPiece):
+class FloorPiece(StaticPiece):
     """
-    A piece representing a simple wall.
+    A piece representing the floor.
     """
+
     def __init__(self, grid: "Grid", app_container: AppContainer):
-        super().__init__(grid, app_container, app_container.resources.wall, False)
+        super().__init__(grid, app_container, app_container.resources.floor, True)

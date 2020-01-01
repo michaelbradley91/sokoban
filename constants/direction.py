@@ -1,6 +1,7 @@
-import pygame
 from enum import Enum
 from typing import Optional, Dict, Callable
+
+import pygame
 
 from coordinate import Coordinate
 

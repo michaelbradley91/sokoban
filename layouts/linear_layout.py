@@ -1,8 +1,8 @@
-from typing import Optional, Dict, List, Tuple
+from typing import Optional, Dict, List
 
 from pygame.rect import Rect
 
-from direction import Direction
+from constants.direction import Direction
 from layouts.layout import Layout, BasicLayout
 
 

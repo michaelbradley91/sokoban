@@ -38,16 +38,23 @@ class MarginLayout(Layout):
                  identifier: Optional[str] = None):
         super().__init__(identifier)
 
+        self.left_margin = None
+        self.top_margin = None
+        self.right_margin = None
+        self.bottom_margin = None
+        self.set_margin(margin)
+
+        self.layout: Optional[Layout] = None
+
+    def set_margin(self, margin: Union[float, Tuple[float, float], Tuple[float, float, float, float]]):
         translated_margin = translate_margin(margin)
+        if any([m for m in translated_margin if m < 0]):
+            raise ValueError("Invalid margins!")
+
         self.left_margin = translated_margin[0]
         self.top_margin = translated_margin[1]
         self.right_margin = translated_margin[2]
         self.bottom_margin = translated_margin[3]
-
-        if any([m for m in translated_margin if m < 0]):
-            raise ValueError("Invalid margins!")
-
-        self.layout: Optional[Layout] = None
 
     def set_layout(self, layout: Layout):
         """

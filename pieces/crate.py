@@ -1,16 +1,13 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Callable
 
+from constants.direction import coordinate_change_to_direction, try_get_move_from_key, Direction
 from animations.linear_animation import LinearAnimation
-from animator import Animator
+from app_container import AppContainer
 from coordinate import Coordinate
-from drawer import Drawer
 from grid import Grid
-from music_player import MusicPlayer
 from pieces.goal import GoalPiece
 from pieces.piece import Piece
 from pieces.player import WALK_SPEED
-from resources import Resources
-from undo import UndoManager
 
 
 class CrateAnimation(LinearAnimation):
@@ -23,10 +20,10 @@ class CratePiece(Piece):
     A piece representing a crate, which needs to be pushed onto a goal.
     """
 
-    def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator,
-                 drawer: Drawer, music_player: MusicPlayer, resources: Resources):
-        super().__init__(grid, undo_manager, animator, drawer, music_player, resources)
+    def __init__(self, grid: "Grid", app_container: AppContainer):
+        super().__init__(grid, app_container)
         self.animation: Optional[CrateAnimation] = None
+        self.animation_direction: Optional[Direction] = None
 
     def react_to_piece_move(self, piece: "Piece") -> bool:
         """
@@ -43,7 +40,12 @@ class CratePiece(Piece):
         if not super().move(coordinate):
             return False
 
-        self.animation = CrateAnimation(old_coordinate, coordinate)
+        direction_change = coordinate_change_to_direction(self.coordinate - old_coordinate)
+        if self.animation and self.animation_direction == direction_change:
+            self.animation.extend(1, WALK_SPEED)
+        else:
+            self.animation_direction = direction_change
+            self.animation = CrateAnimation(old_coordinate, coordinate)
         self.animator.add_animation(self.animation)
 
         if any(p for p in self.grid[self.coordinate] if type(p) == GoalPiece):
@@ -54,6 +56,9 @@ class CratePiece(Piece):
 
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
         if not self.animation or self.animation.is_finished:
-            self.drawer.draw_crate(self.get_rect_at_coordinate(grid_offset, square_size))
+            self.animation = None
+            self.animation_direction = None
+            self.resources.crate.draw(self.get_rect_at_coordinate(grid_offset, square_size))
         else:
-            self.animation.draw(lambda r, i: self.drawer.draw_crate(r), grid_offset, square_size)
+            animation_status = self.animation.calculate(grid_offset, square_size)
+            self.resources.crate.draw(animation_status.rect)

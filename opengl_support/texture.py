@@ -7,8 +7,10 @@ from OpenGL.GL import glGenTextures, glBindTexture, glTexImage2D, GL_TEXTURE_2D,
     GL_QUADS, glTexCoord2f, glVertex3i, glEnd, GL_NEAREST
 from pygame.rect import Rect
 
+from opengl_support.drawable import Drawable
 
-class Texture:
+
+class Texture(Drawable):
     """
     An OpenGL texture. This should be reloaded whenever the window changes size.
     """
@@ -36,7 +38,7 @@ class Texture:
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
 
-    def draw(self, rect: Rect, sub_rectangle: Optional[Rect] = None):
+    def draw_sub_rectangle(self, rect: Rect, sub_rectangle: Optional[Rect] = None):
         """
         Draw this texture in the given rect. If provided, only draws the sub_rectangle of the texture
         in the target rectangle.
@@ -59,6 +61,9 @@ class Texture:
         glTexCoord2f(sub_rectangle.x / self.width, sub_rectangle.bottom / self.height)
         glVertex3i(rect.x, rect.bottom, 0)
         glEnd()
+
+    def draw(self, rect: Rect):
+        self.draw_sub_rectangle(rect)
 
     @property
     def surface(self):

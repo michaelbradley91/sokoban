@@ -1,31 +1,24 @@
+import uuid
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Tuple
 
-import pygame
-import uuid
-
 from pygame.rect import Rect
 
-from animator import Animator
+from app_container import AppContainer, UsesAppContainer
 from coordinate import Coordinate
-from drawer import Drawer
-from music_player import MusicPlayer
-from resources import Resources
-from undo import UndoManager
 
 if TYPE_CHECKING:
     from grid import Grid
 
 
-class Piece(ABC):
-    def __init__(self, grid: "Grid", undo_manager: UndoManager, animator: Animator,
-                 drawer: Drawer, music_player: MusicPlayer, resources: Resources):
+class Piece(UsesAppContainer, ABC):
+    def __init__(self, grid: "Grid", app_container: AppContainer):
         self.grid = grid
-        self.undo_manager = undo_manager
-        self.animator = animator
-        self.drawer = drawer
-        self.music_player = music_player
-        self.resources = resources
+        self.__app_container = app_container
+
+    @property
+    def app_container(self):
+        return self.__app_container
 
     @property
     def coordinate(self) -> Coordinate:

@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 import pygame
+
 from undo import UndoManager
 
 if TYPE_CHECKING:
@@ -19,6 +20,11 @@ class MusicPlayer:
     def __init__(self, resources: "Resources", undo_manager: UndoManager):
         self.resources = resources
         self.undo_manager = undo_manager
+
+        # Defaults
+        self.__crate_slide_default_volume = self.resources.crate_sound.get_volume()
+        self.__crate_moved_onto_goal_default_volume = self.resources.crate_success_sound.get_volume()
+        self.__you_win_default_volume = self.resources.win_sound.get_volume()
 
     def play_crate_slide(self):
         self.resources.crate_sound.play()
@@ -41,3 +47,8 @@ class MusicPlayer:
         self.resources.crate_sound.stop()
         self.resources.crate_success_sound.stop()
         self.resources.win_sound.stop()
+
+        # Defaults
+        self.resources.crate_sound.set_volume(self.__crate_slide_default_volume)
+        self.resources.crate_success_sound.set_volume(self.__crate_moved_onto_goal_default_volume)
+        self.resources.win_sound.set_volume(self.__you_win_default_volume)

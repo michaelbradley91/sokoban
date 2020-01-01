@@ -1,17 +1,12 @@
-from typing import Tuple
+from app_container import AppContainer
+from grid import Grid
+from pieces.static import StaticPiece
 
-from pieces.piece import Piece
 
-
-class GoalPiece(Piece):
+class GoalPiece(StaticPiece):
     """
     A piece representing a goal, which is where a crate needs to be pushed to.
     """
-    def react_to_piece_move(self, piece: "Piece") -> bool:
-        """
-        Goals should never need to move, and allow anything on top of them
-        """
-        return True
 
-    def draw(self, grid_offset: Tuple[int, int], square_size: int):
-        self.drawer.draw_goal(self.get_rect_at_coordinate(grid_offset, square_size))
+    def __init__(self, grid: "Grid", app_container: AppContainer):
+        super().__init__(grid, app_container, app_container.resources.goal, True)

@@ -1,23 +1,17 @@
 from typing import List, Iterable, Dict, Set, TYPE_CHECKING
 
-from animator import Animator
+from app_container import AppContainer, UsesAppContainer
 from coordinate import Coordinate
-from drawer import Drawer
-from music_player import MusicPlayer
-
-from pieces.nothing import NothingPiece
-from resources import Resources
-from undo import UndoManager
+from pieces.floor import FloorPiece
+from pieces.wall import WallPiece
 
 if TYPE_CHECKING:
     from pieces.piece import Piece
 
 
-class Grid:
-    def __init__(self, undo_manager: UndoManager, animator: Animator, drawer: Drawer, music_player: MusicPlayer,
-                 resources: Resources, width: int, height: int):
-        self.__undo_manager = undo_manager
-        self.__resources = resources
+class Grid(UsesAppContainer):
+    def __init__(self, app_container: AppContainer, width: int, height: int):
+        self.__app_container = app_container
         self.__width = width
         self.__height = height
 
@@ -26,13 +20,17 @@ class Grid:
         self.__pieces_to_coordinates: Dict["Piece", Coordinate] = dict()
         self.__piece_types_to_pieces: Dict[type, Set["Piece"]] = dict()
 
-        self.__piece_types_to_pieces[NothingPiece] = set()
+        self.__piece_types_to_pieces[FloorPiece] = set()
         for x in range(0, width):
             for y in range(0, height):
-                nothing = NothingPiece(self, undo_manager, animator, drawer, music_player, resources)
-                self.__coordinates_to_pieces[Coordinate(x=x, y=y)] = [nothing]
-                self.__pieces_to_coordinates[nothing] = Coordinate(x=x, y=y)
-                self.__piece_types_to_pieces[type(nothing)].add(nothing)
+                floor = FloorPiece(self, self.app_container)
+                self.__coordinates_to_pieces[Coordinate(x=x, y=y)] = [floor]
+                self.__pieces_to_coordinates[floor] = Coordinate(x=x, y=y)
+                self.__piece_types_to_pieces[type(floor)].add(floor)
+
+    @property
+    def app_container(self):
+        return self.__app_container
 
     @property
     def width(self) -> int:
@@ -41,6 +39,20 @@ class Grid:
     @property
     def height(self) -> int:
         return self.__height
+
+    def add_outer_wall(self):
+        """
+        Add wall pieces all around the border of the grid
+        :return: nothing
+        """
+        for x in range(0, self.width):
+            self.add_piece(WallPiece(self, self.app_container), Coordinate(x, 0))
+            self.add_piece(WallPiece(self, self.app_container), Coordinate(x, self.height - 1))
+
+        for y in range(0, self.height):
+            self.add_piece(WallPiece(self, self.app_container), Coordinate(0, y))
+            self.add_piece(WallPiece(self, self.app_container), Coordinate(self.width - 1, y))
+
 
     def __iter__(self) -> Iterable[Coordinate]:
         return iter(self.__coordinates_to_pieces.keys())
@@ -74,7 +86,7 @@ class Grid:
 
         # If we actually did remove the piece, put it back on undo
         if coordinate:
-            self.__undo_manager.register(lambda: self.add_piece(piece, coordinate), lambda: self.remove_piece(piece))
+            self.undo_manager.register(lambda: self.add_piece(piece, coordinate), lambda: self.remove_piece(piece))
 
     def add_piece(self, piece: "Piece", coordinate: Coordinate):
         """
@@ -96,7 +108,7 @@ class Grid:
         self.__piece_types_to_pieces[type(piece)].add(piece)
 
         # If the piece did exist at a previous location, remove will have recorded an undo to put it back already
-        self.__undo_manager.register(lambda: self.remove_piece(piece), lambda: self.add_piece(piece, coordinate))
+        self.undo_manager.register(lambda: self.remove_piece(piece), lambda: self.add_piece(piece, coordinate))
 
     def move_piece(self, piece: "Piece", coordinate: Coordinate):
         """
