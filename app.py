@@ -5,7 +5,6 @@ from time import sleep
 from typing import Optional, List, Tuple
 
 import pygame
-import pyglet
 from OpenGL.raw.WGL.EXT import swap_control
 from pygame.event import EventType
 from pygame.time import Clock
@@ -57,9 +56,10 @@ class App(AppContainer, Navigator):
         self.__music_player = MusicPlayer(self.__resources, self.__undo_manager)
         self.go_to_view(StartView, StartViewParameters())
 
+        # https://stackoverflow.com/questions/589064/how-to-enable-vertical-sync-in-opengl/589232#589232
         # Turn on vsync if possible
-        if sys.platform == "win32":
-            swap_control.wglSwapIntervalEXT(True)
+        # if sys.platform == "win32":
+        #     swap_control.wglSwapIntervalEXT(True)
 
         self.restart_opengl()
         return True
@@ -158,7 +158,7 @@ class App(AppContainer, Navigator):
                     tick_queue.put(0)
                 else:
 
-                    tick_queue.put(custom_ticks(last_call))
+                    tick_queue.put(clock.tick(60))
                     last_call = pygame.time.get_ticks()
 
         if not self.on_init():
