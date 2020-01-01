@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Callable
 
 from animations.animation import Animation
 from animations.linear_animation import LinearAnimation
@@ -16,8 +16,9 @@ ANIMATION_SPEED = 100
 
 
 class PlayerAnimation(LinearAnimation):
-    def __init__(self, number_of_images: int, start: Coordinate, finish: Coordinate):
-        super().__init__(start, finish, number_of_images, WALK_SPEED, ANIMATION_SPEED)
+    def __init__(self, number_of_images: int, start: Coordinate, finish: Coordinate,
+                 finished: Callable[[LinearAnimation], None]):
+        super().__init__(start.to_float(), finish.to_float(), number_of_images, WALK_SPEED, ANIMATION_SPEED, finished)
 
 
 class PlayerPiece(Piece):
@@ -53,7 +54,7 @@ class PlayerPiece(Piece):
         if not super().move(coordinate):
             return False
 
-        self.animation = PlayerAnimation(len(self.resources.player[self.direction]), old_coordinate, coordinate)
+        self.animation = PlayerAnimation(len(self.resources.player[self.direction]), old_coordinate, coordinate, lambda _: None)
         self.animator.add_animation(self.animation)
 
         return True

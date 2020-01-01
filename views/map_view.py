@@ -91,8 +91,7 @@ class MapView(View[MapViewParameters, MapViewModel]):
 
     def pre_event_loop(self):
         if self.model.players_can_move:
-            pressed_keys = pygame.key.get_pressed()
-            move = try_get_move_from_key(pressed_keys)
+            move = try_get_move_from_key(self.keys_pressed)
             if move:
                 self.move_players(move)
 

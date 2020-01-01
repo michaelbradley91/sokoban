@@ -1,7 +1,8 @@
 import sys
+from collections import defaultdict
 from queue import Queue, Full
 from threading import Thread
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict
 
 import pygame
 from OpenGL.WGL.EXT import swap_control
@@ -141,7 +142,7 @@ class AppClock:
         if len(self.__elapsed_time_samples) == NUMBER_OF_ELAPSED_TIME_SAMPLES:
             average = sum(self.__elapsed_time_samples) / NUMBER_OF_ELAPSED_TIME_SAMPLES
             # Remove any significant outliers caused by video refreshes for example
-            self.__elapsed_time_samples = [s for s in self.__elapsed_time_samples if s > (5 * average)]
+            self.__elapsed_time_samples = [s for s in self.__elapsed_time_samples if (average / 5) < s < (5 * average)]
 
     def get_fps(self):
         """
@@ -149,7 +150,7 @@ class AppClock:
         :return: the FPS
         """
         if len(self.__elapsed_time_samples) == NUMBER_OF_ELAPSED_TIME_SAMPLES:
-            return int(1000 / (sum(self.__elapsed_time_samples) / 10))
+            return int(10000 / sum(self.__elapsed_time_samples))
         else:
             return None
 
@@ -178,7 +179,6 @@ class AppClock:
 
         # The above returned if vsync worked, so now we throttle
         if self.__full_screen_enabled:
-            print("Full screen!")
             self.__in_line_clock.tick(self.__target_frame_rate)
         else:
             try:
@@ -211,6 +211,7 @@ class App(AppContainer, Navigator):
         self.__layout: BasicLayout = BasicLayout(identifier="app_window")
         self.__container: AppContainer
         self.__app_clock = AppClock(self.__target_frame_Rate)
+        self.__keys_pressed: Dict[int, bool] = defaultdict(lambda: False)
 
     def on_init(self):
         initialise_mixer()
@@ -305,8 +306,10 @@ class App(AppContainer, Navigator):
         if not self.on_init():
             self._keep_running = False
         while self._keep_running:
+            self.__keys_pressed = pygame.key.get_pressed()
+            events = list(pygame.event.get())
             self.pre_event_loop()
-            self.on_events(list(pygame.event.get()))
+            self.on_events(events)
             self.post_event_loop()
             self.draw_static()
             elapsed_ticks = self.__app_clock.tick()
@@ -328,24 +331,28 @@ class App(AppContainer, Navigator):
         self.__resources.reload()
 
     @property
-    def undo_manager(self):
+    def undo_manager(self) -> UndoManager:
         return self.__undo_manager
 
     @property
-    def animator(self):
+    def animator(self) -> Animator:
         return self.__animator
 
     @property
-    def music_player(self):
+    def music_player(self) -> MusicPlayer:
         return self.__music_player
 
     @property
-    def resources(self):
+    def resources(self) -> Resources:
         return self.__resources
 
     @property
-    def navigator(self):
+    def navigator(self) -> Navigator:
         return self
+
+    @property
+    def keys_pressed(self) -> Dict[int, bool]:
+        return self.__keys_pressed
 
 
 if __name__ == "__main__":

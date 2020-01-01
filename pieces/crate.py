@@ -1,4 +1,4 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Callable
 
 from animations.linear_animation import LinearAnimation
 from app_container import AppContainer
@@ -10,8 +10,8 @@ from pieces.player import WALK_SPEED
 
 
 class CrateAnimation(LinearAnimation):
-    def __init__(self, start: Coordinate, finish: Coordinate):
-        super().__init__(start, finish, 1, WALK_SPEED, 1)
+    def __init__(self, start: Coordinate, finish: Coordinate, finished: Callable[[LinearAnimation], None]):
+        super().__init__(start.to_float(), finish.to_float(), 1, WALK_SPEED, 1, finished)
 
 
 class CratePiece(Piece):
@@ -38,7 +38,7 @@ class CratePiece(Piece):
         if not super().move(coordinate):
             return False
 
-        self.animation = CrateAnimation(old_coordinate, coordinate)
+        self.animation = CrateAnimation(old_coordinate, coordinate, lambda _: None)
         self.animator.add_animation(self.animation)
 
         if any(p for p in self.grid[self.coordinate] if type(p) == GoalPiece):

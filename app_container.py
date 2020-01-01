@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Dict
 
 from animator import Animator
 from music_player import MusicPlayer
@@ -36,6 +37,11 @@ class AppContainer(ABC):
     def navigator(self) -> Navigator:
         pass
 
+    @property
+    @abstractmethod
+    def keys_pressed(self) -> Dict[int, bool]:
+        pass
+
 
 class UsesAppContainer(ABC):
     """
@@ -65,3 +71,7 @@ class UsesAppContainer(ABC):
     @property
     def navigator(self) -> Navigator:
         return self.app_container.navigator
+
+    @property
+    def keys_pressed(self) -> Dict[int, bool]:
+        return self.app_container.keys_pressed

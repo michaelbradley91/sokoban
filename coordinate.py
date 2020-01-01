@@ -15,6 +15,9 @@ class Coordinate:
     def y(self):
         return self.__y
 
+    def to_float(self) -> Tuple[float, float]:
+        return float(self.x), float(self.y)
+
     def normalise(self) -> Tuple[float, float]:
         """
         When considering this point like a vector, normalise x and y so the length

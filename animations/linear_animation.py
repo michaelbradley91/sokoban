@@ -1,9 +1,11 @@
+from cmath import sqrt
 from time import time
-from typing import NamedTuple, Tuple
+from typing import NamedTuple, Tuple, Callable, Optional
 
 from pygame.rect import Rect
 
 from animations.animation import Animation
+from constants.direction import coordinate_change_to_direction, direction_to_coordinate
 from coordinate import Coordinate
 
 
@@ -29,14 +31,15 @@ class LinearAnimation(Animation):
     changes and the time to spend getting from start to finish,
     this object can report on what to show at each instance, and when it is finished.
     """
-    def __init__(self, start: Coordinate, finish: Coordinate, number_of_images: int, travel_time: int,
-                 image_time: int):
+    def __init__(self, start: Tuple[float, float], finish: Tuple[float, float], number_of_images: int, travel_time: int,
+                 image_time: int, finished: Optional[Callable[["LinearAnimation"], None]]):
         """
         :param start: where the image should begin moving from
         :param finish: where the image should move to
         :param number_of_images: the number of images to cycle through
         :param travel_time: the time to take travelling from start to finish in milliseconds
         :param image_time: the time to spend showing each image in milliseconds
+        :param finished: an optional callback for when this animation has just finished.
 
         Note: the images are played in the order they are passed in.
         The first image is assumed to be the final image.
@@ -51,22 +54,41 @@ class LinearAnimation(Animation):
         self.__status: LinearAnimationState = LinearAnimationState(
             finished=False,
             image_index=0,
-            position=(self.__start.x, self.__start.y)
+            position=(self.__start[0], self.__start[1])
         )
+        if not finished:
+            self.__finished: Callable[["LinearAnimation"], None] = lambda l: None
+        else:
+            self.__finished: Callable[["LinearAnimation"], None] = finished
 
     def start(self):
         pass
 
     def stop(self):
         self.__status = LinearAnimationState(
-            position=(self.__finish.x, self.__finish.y),
+            position=(self.__finish[0], self.__finish[1]),
             image_index=0,
             finished=True
         )
 
+    def extend(self, amount: float) -> LinearAnimationState:
+        """
+        Extend this animation by the given amount in its current direction and at the same speed.
+        :param amount: the amount to extend by
+        :return: the new animation state. Note that it is updated automatically with the previous elapsed time
+        since the last update. (This time is not truncated if the animation just finished)
+        """
+        if amount <= 0:
+            return self.update(0)
+        normalised = self.vector_normalised
+        distance = self.vector[0] + (normalised[0] * amount), self.vector[1] + (normalised[1] * amount)
+        self.__finish = self.__start[0] + distance[0], self.__start[1] + distance[1]
+        self.__finished = False
+        return self.update(0)
+
     def update(self, time_elapsed: int) -> LinearAnimationState:
         """
-        Update the animation status. Returns
+        Update the animation status.
         :param time_elapsed: the amount of time that has elapsed since the last update
         :return: the new linear animation status
         """
@@ -75,22 +97,21 @@ class LinearAnimation(Animation):
 
         self.__total_time_elapsed += time_elapsed
 
-        vector = self.__finish - self.__start
+        vector = self.__finish[0] - self.__start[0], self.__finish[1] - self.__start[1]
         percentage_travelled = self.__total_time_elapsed / self.__travel_time
 
         if percentage_travelled >= 0.99999:
-            # TODO: check if the animation should be allowed to continue
-            # TODO: and update the finish if so.
             self.__status = LinearAnimationState(
-                position=(self.__finish.x, self.__finish.y),
+                position=(self.__finish[0], self.__finish[1]),
                 image_index=0,
                 finished=True
             )
+            self.__finished(self)
             return self.__status
 
         # Calculate the distance moved
-        new_x = self.__start.x + (vector.x * percentage_travelled)
-        new_y = self.__start.y + (vector.y * percentage_travelled)
+        new_x = self.__start[0] + (vector[0] * percentage_travelled)
+        new_y = self.__start[1] + (vector[1] * percentage_travelled)
 
         # Calculate the image to display
         image_to_show = int(self.__total_time_elapsed / self.__image_time) % self.__number_of_images
@@ -120,6 +141,19 @@ class LinearAnimation(Animation):
             rect=rect,
             finished=self.status.finished
         )
+
+    @property
+    def vector(self) -> Tuple[float, float]:
+        return self.__finish[0] - self.__start[0], self.__finish[1] - self.__finish[0]
+
+    @property
+    def vector_normalised(self) -> Tuple[float, float]:
+        v = self.vector
+        if v[0] == 0 and v[1] == 0:
+            return 0, 0
+
+        length = sqrt((v[0] * v[0]) + (v[1] * v[1]))
+        return v[0] / length, v[1] / length
 
     @property
     def status(self) -> LinearAnimationState:
