@@ -46,7 +46,7 @@ class AppClock:
         self.__last_ticks = pygame.time.get_ticks()
         self.__tick_thread_queue = Queue(maxsize=1)
         self.__tick_thread_kill_queue = Queue()
-        self.__tick_thread = None
+        self.__tick_thread: Thread = None
         self.__in_line_clock = Clock()
 
         self.reset_clock()
@@ -62,7 +62,7 @@ class AppClock:
         while kill_queue.empty():
             clock.tick(target_frame_rate)
             try:
-                tick_queue.put(None, timeout=10)
+                tick_queue.put(None, timeout=2)
             except Full:
                 # Needed to ensure that the thread does die
                 pass
@@ -128,6 +128,12 @@ class AppClock:
             self.__tick_thread_kill_queue, self.__tick_thread_queue, self.__target_frame_rate])
         self.__tick_thread.start()
 
+    def stop(self):
+        self.reset_clock()
+        if self.__tick_thread:
+            self.__tick_thread_kill_queue.put(True)
+        self.__tick_thread.join()
+
     def add_elapsed_time_sample(self, elapsed_time: int):
         """
         Record the given elapsed time sample in seconds
@@ -183,7 +189,7 @@ class AppClock:
         else:
             try:
                 if self.__full_screen_enabled:
-                    self.__tick_thread_queue.get(timeout=10)
+                    self.__tick_thread_queue.get(timeout=2)
             except Full:
                 # Something went wrong?
                 self.reset_clock()
@@ -292,9 +298,11 @@ class App(AppContainer, Navigator):
     def quit(self):
         self._keep_running = False
 
-    @staticmethod
-    def on_clean_up():
+    def on_clean_up(self):
         pygame.quit()
+        print("Stopping")
+        self.__app_clock.stop()
+        print("Stopped")
 
     def tick(self) -> int:
         """
@@ -305,7 +313,7 @@ class App(AppContainer, Navigator):
 
     def on_execute(self):
         total = 0
-
+        last = pygame.time.get_ticks()
         if not self.on_init():
             self._keep_running = False
         while self._keep_running:
@@ -315,7 +323,11 @@ class App(AppContainer, Navigator):
             self.on_events(events)
             self.post_event_loop()
             self.draw_static()
-            elapsed_ticks = self.__app_clock.tick()
+            next = pygame.time.get_ticks()
+            print(next)
+            elapsed_ticks = next - last
+            last = next
+            # elapsed_ticks = self.__app_clock.tick()
             if elapsed_ticks > 20:
                 total += 1
             self.animator.run_animations(elapsed_ticks)
@@ -323,7 +335,7 @@ class App(AppContainer, Navigator):
             self.draw_animated()
             pygame.display.flip()
 
-        App.on_clean_up()
+        self.on_clean_up()
 
     def restart_opengl(self):
         vsync_enabled = try_enable_vsync()
