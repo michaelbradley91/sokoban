@@ -313,7 +313,6 @@ class App(AppContainer, Navigator):
 
     def on_execute(self):
         total = 0
-        last = pygame.time.get_ticks()
         if not self.on_init():
             self._keep_running = False
         while self._keep_running:
@@ -323,13 +322,10 @@ class App(AppContainer, Navigator):
             self.on_events(events)
             self.post_event_loop()
             self.draw_static()
-            next = pygame.time.get_ticks()
-            print(next)
-            elapsed_ticks = next - last
-            last = next
-            # elapsed_ticks = self.__app_clock.tick()
+            elapsed_ticks = self.__app_clock.tick()
             if elapsed_ticks > 20:
                 total += 1
+                print("t", total, elapsed_ticks)
             self.animator.run_animations(elapsed_ticks)
             self.post_animation_loop()
             self.draw_animated()
