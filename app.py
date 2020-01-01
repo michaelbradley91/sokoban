@@ -11,7 +11,7 @@ from app_container import AppContainer
 from layouts.layout import BasicLayout
 from music_player import initialise_mixer, MusicPlayer
 from navigator import Navigator
-from opengl_support.helpers import init_opengl, try_enable_vsync
+from opengl_support.helpers import init_opengl, try_enable_vsync, try_to_be_dpi_aware
 from resources import Resources, find_resource
 from undo import UndoManager
 from views.start_view import StartView, StartViewParameters
@@ -154,6 +154,7 @@ class App(AppContainer, Navigator):
         self.__keys_pressed: Dict[int, bool] = defaultdict(lambda: False)
 
     def on_init(self):
+        try_to_be_dpi_aware()
         initialise_mixer()
         pygame.init()
         pygame.mixer.music.load(find_resource("resources/Puzzle-Dreams-3.mp3"))
@@ -178,6 +179,9 @@ class App(AppContainer, Navigator):
         self.__layout.update_rect(self.__resources.display.get_rect())
 
     def on_events(self, events: List[EventType]):
+        info = pygame.display.Info()
+        size = pygame.display.list_modes()
+
         if not events:
             return
 
