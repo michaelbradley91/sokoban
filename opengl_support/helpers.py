@@ -1,4 +1,5 @@
 import pygame
+import ctypes
 from OpenGL.GL import GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T, glLoadIdentity, GL_CLAMP_TO_EDGE, glTexParameteri, \
     glEnable, GL_BLEND, \
     GL_COLOR_MATERIAL, GL_MULTISAMPLE, GL_SAMPLE_ALPHA_TO_COVERAGE, GL_SRC_ALPHA, glBlendFunc, GL_ONE_MINUS_SRC_ALPHA, \
@@ -89,3 +90,15 @@ def try_enable_vsync() -> bool:
         pass
 
     return False
+
+
+# noinspection PyBroadException
+def try_to_be_dpi_aware():
+    """
+    Tries to make the application DPI aware.
+    """
+    try:
+        user32 = ctypes.windll.user32
+        user32.SetProcessDPIAware()
+    except Exception:
+        pass

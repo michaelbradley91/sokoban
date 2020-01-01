@@ -37,7 +37,7 @@ executables = [cx_Freeze.Executable(
 
 cx_Freeze.setup(
     name="Sokoban",
-    version="0.9.0",
+    version="0.10.0",
     description="Let's play Sokoban!",
     options={
         "build_exe": {
