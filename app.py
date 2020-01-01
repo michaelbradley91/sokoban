@@ -1,21 +1,17 @@
-import sys
 from collections import defaultdict
-from queue import Queue, Full
-from threading import Thread
 from typing import Optional, List, Tuple, Dict
 
 import pygame
-from OpenGL.WGL.EXT import swap_control
 from pygame.event import EventType
 from pygame.time import Clock
 
+import opengl_support.monkey_patching
 from animator import Animator
 from app_container import AppContainer
 from layouts.layout import BasicLayout
 from music_player import initialise_mixer, MusicPlayer
 from navigator import Navigator
 from opengl_support.helpers import init_opengl, try_enable_vsync
-import opengl_support.monkey_patching
 from resources import Resources, find_resource
 from undo import UndoManager
 from views.start_view import StartView, StartViewParameters
@@ -42,30 +38,10 @@ class AppClock:
         self.__vsync_enabled = False
         self.__vsync_working = False
         self.__vsync_not_working_count = 0
-        self.__full_screen_enabled = False
         self.__last_ticks = pygame.time.get_ticks()
-        self.__tick_thread_queue = Queue(maxsize=1)
-        self.__tick_thread_kill_queue = Queue()
-        self.__tick_thread: Thread = None
-        self.__in_line_clock = Clock()
+        self.__clock = Clock()
 
         self.reset_clock()
-
-    @staticmethod
-    def tick_thread(kill_queue: Queue, tick_queue: Queue, target_frame_rate: int):
-        """
-        A thread whose only job is to tick. This was found to be more accurate
-        than running tick after CPU work, since it gives tick longer to sleep.
-        :return: nothing
-        """
-        clock = Clock()
-        while kill_queue.empty():
-            clock.tick(target_frame_rate)
-            try:
-                tick_queue.put(None, timeout=2)
-            except Full:
-                # Needed to ensure that the thread does die
-                pass
 
     def reset_clock(self):
         """
@@ -77,8 +53,7 @@ class AppClock:
         self.__vsync_working = self.__vsync_enabled
         self.__vsync_not_working_count = 0
         self.__last_ticks = pygame.time.get_ticks()
-        self.__in_line_clock = Clock()
-        self.restart_tick_thread()
+        self.__clock = Clock()
 
     def set_target_frame_rate(self, target_frame_rate: int):
         """
@@ -101,38 +76,6 @@ class AppClock:
         if self.__vsync_enabled != enabled:
             self.__vsync_enabled = enabled
             self.reset_clock()
-
-    def set_full_screen(self, enabled: bool):
-        """
-        Update if full screen is enabled.
-        It has been seen that with fullscreen turned on, thread synchronisation is actually worse.
-        :param enabled: if full screen is enabled
-        :return: nothing
-        """
-        if self.__full_screen_enabled != enabled:
-            self.__full_screen_enabled = enabled
-            self.reset_clock()
-
-    def restart_tick_thread(self):
-        """
-        Restart the tick thread. Can be useful to heuristically try synchronising with the screen
-        :return: nothing
-        """
-        if self.__tick_thread:
-            self.__tick_thread_kill_queue.put(True)
-            # The thread will now die after some time. (10 seconds)
-            self.__tick_thread_queue = Queue(maxsize=1)
-            self.__tick_thread_kill_queue = Queue()
-
-        self.__tick_thread = Thread(target=AppClock.tick_thread, args=[
-            self.__tick_thread_kill_queue, self.__tick_thread_queue, self.__target_frame_rate])
-        self.__tick_thread.start()
-
-    def stop(self):
-        self.reset_clock()
-        if self.__tick_thread:
-            self.__tick_thread_kill_queue.put(True)
-        self.__tick_thread.join()
 
     def add_elapsed_time_sample(self, elapsed_time: int):
         """
@@ -184,16 +127,7 @@ class AppClock:
                 self.__vsync_not_working_count = 1
 
         # The above returned if vsync worked, so now we throttle
-        if self.__full_screen_enabled:
-            self.__in_line_clock.tick(self.__target_frame_rate)
-        else:
-            try:
-                if self.__full_screen_enabled:
-                    self.__tick_thread_queue.get(timeout=2)
-            except Full:
-                # Something went wrong?
-                self.reset_clock()
-
+        self.__clock.tick(self.__target_frame_rate)
         new_ticks = pygame.time.get_ticks()
         elapsed_ticks = new_ticks - self.__last_ticks
         self.add_elapsed_time_sample(elapsed_ticks)
@@ -300,9 +234,6 @@ class App(AppContainer, Navigator):
 
     def on_clean_up(self):
         pygame.quit()
-        print("Stopping")
-        self.__app_clock.stop()
-        print("Stopped")
 
     def tick(self) -> int:
         """
@@ -312,7 +243,6 @@ class App(AppContainer, Navigator):
         """
 
     def on_execute(self):
-        total = 0
         if not self.on_init():
             self._keep_running = False
         while self._keep_running:
@@ -323,9 +253,6 @@ class App(AppContainer, Navigator):
             self.post_event_loop()
             self.draw_static()
             elapsed_ticks = self.__app_clock.tick()
-            if elapsed_ticks > 20:
-                total += 1
-                print("t", total, elapsed_ticks)
             self.animator.run_animations(elapsed_ticks)
             self.post_animation_loop()
             self.draw_animated()
@@ -335,9 +262,7 @@ class App(AppContainer, Navigator):
 
     def restart_opengl(self):
         vsync_enabled = try_enable_vsync()
-        full_screen_enabled = bool(self.__resources.display.get_flags() & pygame.FULLSCREEN)
         self.__app_clock.set_vsync_enabled(vsync_enabled)
-        self.__app_clock.set_full_screen(full_screen_enabled)
         self.__app_clock.reset_clock()
         init_opengl(self.__resources.display)
         self.__resources.reload()
