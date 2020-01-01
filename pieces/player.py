@@ -78,8 +78,10 @@ class PlayerPiece(Piece):
 
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
         if not self.animation or self.animation.is_finished:
+            print("Not animated!")
             self.resources.player[self.direction][0].draw(self.get_rect_at_coordinate(grid_offset, square_size))
         elif isinstance(self.animation, PlayerAnimation):
+            print("Animated!")
             animation_status = self.animation.calculate(grid_offset, square_size)
             self.resources.player[self.direction][animation_status.image_index].draw(animation_status.rect)
         elif isinstance(self.animation, StaticAnimation):

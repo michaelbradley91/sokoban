@@ -92,6 +92,7 @@ f
             self.__finish -= Coordinate(0, amount)
 
         self.__travel_time += extra_travel_time
+        self.__status = self.status._replace(finished=False)
         return self.update(0)
 
     def update(self, time_elapsed: int) -> LinearAnimationState:
@@ -100,8 +101,8 @@ f
         :param time_elapsed: the amount of time that has elapsed since the last update
         :return: the new linear animation status
         """
-        if self.status.finished:
-            return self.status
+        if self.__status.finished:
+            return self.__status
 
         self.__total_time_elapsed += time_elapsed
 
