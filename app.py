@@ -58,8 +58,8 @@ class App(AppContainer, Navigator):
 
         # https://stackoverflow.com/questions/589064/how-to-enable-vertical-sync-in-opengl/589232#589232
         # Turn on vsync if possible
-        # if sys.platform == "win32":
-        #     swap_control.wglSwapIntervalEXT(True)
+        if sys.platform == "win32":
+            swap_control.wglSwapIntervalEXT(True)
 
         self.restart_opengl()
         return True
