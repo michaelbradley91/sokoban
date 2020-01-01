@@ -75,7 +75,7 @@ class LinearAnimation(Animation):
 
         self.__total_time_elapsed += time_elapsed
 
-        vector = self.__start - self.__finish
+        vector = self.__finish - self.__start
         percentage_travelled = self.__total_time_elapsed / self.__travel_time
 
         if percentage_travelled >= 0.99999:

@@ -1,8 +1,10 @@
+import sys
 from queue import Queue, Full
 from threading import Thread
 from typing import Optional, List, Tuple
 
 import pygame
+from OpenGL.WGL.EXT import swap_control
 from pygame.event import EventType
 from pygame.time import Clock
 
@@ -39,10 +41,12 @@ class AppClock:
         self.__vsync_enabled = False
         self.__vsync_working = False
         self.__vsync_not_working_count = 0
+        self.__full_screen_enabled = False
         self.__last_ticks = pygame.time.get_ticks()
         self.__tick_thread_queue = Queue(maxsize=1)
         self.__tick_thread_kill_queue = Queue()
         self.__tick_thread = None
+        self.__in_line_clock = Clock()
 
         self.reset_clock()
 
@@ -51,11 +55,6 @@ class AppClock:
         """
         A thread whose only job is to tick. This was found to be more accurate
         than running tick after CPU work, since it gives tick longer to sleep.
-
-        Note: on some systems the accuracy of communicating with another thread
-        could make this worse, but hopefully not so much worse that this is better
-        avoided. Will modify this if necessary.
-
         :return: nothing
         """
         clock = Clock()
@@ -77,6 +76,7 @@ class AppClock:
         self.__vsync_working = self.__vsync_enabled
         self.__vsync_not_working_count = 0
         self.__last_ticks = pygame.time.get_ticks()
+        self.__in_line_clock = Clock()
         self.restart_tick_thread()
 
     def set_target_frame_rate(self, target_frame_rate: int):
@@ -99,6 +99,17 @@ class AppClock:
         """
         if self.__vsync_enabled != enabled:
             self.__vsync_enabled = enabled
+            self.reset_clock()
+
+    def set_full_screen(self, enabled: bool):
+        """
+        Update if full screen is enabled.
+        It has been seen that with fullscreen turned on, thread synchronisation is actually worse.
+        :param enabled: if full screen is enabled
+        :return: nothing
+        """
+        if self.__full_screen_enabled != enabled:
+            self.__full_screen_enabled = enabled
             self.reset_clock()
 
     def restart_tick_thread(self):
@@ -152,12 +163,13 @@ class AppClock:
                     self.__vsync_not_working_count = 0
 
             # Check if the FPS target is working
-            if self.__vsync_working and self.get_fps() < VSYNC_FAILING_FACTOR * self.__target_frame_rate:
+            fps = self.get_fps()
+            if self.__vsync_working and (not fps or fps < VSYNC_FAILING_FACTOR * self.__target_frame_rate):
                 # "Working"
                 new_ticks = pygame.time.get_ticks()
                 elapsed_ticks = new_ticks - self.__last_ticks
                 self.add_elapsed_time_sample(elapsed_ticks)
-                self.__last_ticks = elapsed_ticks
+                self.__last_ticks = new_ticks
                 return elapsed_ticks
             elif self.__vsync_working:
                 # Failing so revert to throttling
@@ -165,15 +177,21 @@ class AppClock:
                 self.__vsync_not_working_count = 1
 
         # The above returned if vsync worked, so now we throttle
-        try:
-            self.__tick_thread_queue.get(timeout=10)
-        except Full:
-            # Something went wrong?
-            self.reset_clock()
+        if self.__full_screen_enabled:
+            print("Full screen!")
+            self.__in_line_clock.tick(self.__target_frame_rate)
+        else:
+            try:
+                if self.__full_screen_enabled:
+                    self.__tick_thread_queue.get(timeout=10)
+            except Full:
+                # Something went wrong?
+                self.reset_clock()
 
         new_ticks = pygame.time.get_ticks()
         elapsed_ticks = new_ticks - self.__last_ticks
         self.add_elapsed_time_sample(elapsed_ticks)
+        self.__last_ticks = new_ticks
         return elapsed_ticks
 
 
@@ -262,7 +280,7 @@ class App(AppContainer, Navigator):
         self.__current_view.post_event_loop()
 
     def draw_static(self):
-        self.__current_view.draw()
+        self.__current_view.draw_static()
 
     def draw_animated(self):
         self.__current_view.draw_animated()
@@ -282,6 +300,8 @@ class App(AppContainer, Navigator):
         """
 
     def on_execute(self):
+        total = 0
+
         if not self.on_init():
             self._keep_running = False
         while self._keep_running:
@@ -290,6 +310,8 @@ class App(AppContainer, Navigator):
             self.post_event_loop()
             self.draw_static()
             elapsed_ticks = self.__app_clock.tick()
+            if elapsed_ticks > 20:
+                total += 1
             self.animator.run_animations(elapsed_ticks)
             self.draw_animated()
             pygame.display.flip()
@@ -298,7 +320,9 @@ class App(AppContainer, Navigator):
 
     def restart_opengl(self):
         vsync_enabled = try_enable_vsync()
+        full_screen_enabled = bool(self.__resources.display.get_flags() & pygame.FULLSCREEN)
         self.__app_clock.set_vsync_enabled(vsync_enabled)
+        self.__app_clock.set_full_screen(full_screen_enabled)
         self.__app_clock.reset_clock()
         init_opengl(self.__resources.display)
         self.__resources.reload()

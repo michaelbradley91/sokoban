@@ -5,8 +5,16 @@ from OpenGL.GL import GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T, glLoa
     glBlendFuncSeparate, glClearColor, GL_ONE, GL_PROJECTION, glMatrixMode, glOrtho, GL_MODELVIEW, GL_COLOR_BUFFER_BIT, \
     GL_DEPTH_BUFFER_BIT, glClear
 from pygame.surface import SurfaceType
-from OpenGL.raw.WGL.EXT import swap_control as wgl_swap_control
-from OpenGL.raw.GLX.EXT import swap_control as glx_swap_control
+# noinspection PyBroadException
+try:
+    import OpenGL.raw.WGL.EXT.swap_control as wgl_swap_control
+except BaseException:
+    pass
+# noinspection PyBroadException
+try:
+    import OpenGL.raw.GLX.EXT.swap_control as glx_swap_control
+except BaseException:
+    pass
 
 DEFAULT_BACKGROUND_COLOUR = pygame.Color("black")
 
