@@ -185,7 +185,7 @@ class App(AppContainer, Navigator):
             previous_time = next_time
             if time_elapsed > 20:
                 total += 1
-                print("t:", total, time_elapsed)
+                # print("t:", total, time_elapsed)
             self.__animator.run_animations(time_elapsed)
             self.draw_animated()
             pygame.display.flip()
