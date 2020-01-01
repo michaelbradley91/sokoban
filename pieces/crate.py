@@ -1,6 +1,6 @@
 from typing import Tuple, Optional, Callable
 
-from constants.direction import coordinate_change_to_direction, try_get_move_from_key
+from constants.direction import coordinate_change_to_direction, try_get_move_from_key, Direction
 from animations.linear_animation import LinearAnimation
 from app_container import AppContainer
 from coordinate import Coordinate
@@ -11,8 +11,8 @@ from pieces.player import WALK_SPEED
 
 
 class CrateAnimation(LinearAnimation):
-    def __init__(self, start: Coordinate, finish: Coordinate, finished: Callable[[LinearAnimation], None]):
-        super().__init__(start, finish, 1, WALK_SPEED, 1, finished)
+    def __init__(self, start: Coordinate, finish: Coordinate):
+        super().__init__(start, finish, 1, WALK_SPEED, 1)
 
 
 class CratePiece(Piece):
@@ -23,6 +23,7 @@ class CratePiece(Piece):
     def __init__(self, grid: "Grid", app_container: AppContainer):
         super().__init__(grid, app_container)
         self.animation: Optional[CrateAnimation] = None
+        self.animation_direction: Optional[Direction] = None
 
     def react_to_piece_move(self, piece: "Piece") -> bool:
         """
@@ -39,7 +40,12 @@ class CratePiece(Piece):
         if not super().move(coordinate):
             return False
 
-        self.animation = CrateAnimation(old_coordinate, coordinate, self.animation_finished)
+        direction_change = coordinate_change_to_direction(self.coordinate - old_coordinate)
+        if self.animation and self.animation_direction == direction_change:
+            self.animation.extend(1, WALK_SPEED)
+        else:
+            self.animation_direction = direction_change
+            self.animation = CrateAnimation(old_coordinate, coordinate)
         self.animator.add_animation(self.animation)
 
         if any(p for p in self.grid[self.coordinate] if type(p) == GoalPiece):
@@ -48,20 +54,10 @@ class CratePiece(Piece):
             self.music_player.play_crate_slide()
         return True
 
-    def animation_finished(self, animation: LinearAnimation):
-        """
-        Check if the user is still holding down the animation button.
-        If so, continue the animation
-        :param animation: the animation to continue
-        :return: nothing
-        """
-        direction = coordinate_change_to_direction(animation.finish_position - animation.start_position)
-        current_direction = try_get_move_from_key(self.keys_pressed)
-        if direction == current_direction:
-            animation.extend(1, WALK_SPEED)
-
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
         if not self.animation or self.animation.is_finished:
+            self.animation = None
+            self.animation_direction = None
             self.resources.crate.draw(self.get_rect_at_coordinate(grid_offset, square_size))
         else:
             animation_status = self.animation.calculate(grid_offset, square_size)

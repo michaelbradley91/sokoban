@@ -90,10 +90,7 @@ class MapView(View[MapViewParameters, MapViewModel]):
         self.layout.set_layout(aspect_layout)
 
     def pre_event_loop(self):
-        if self.model.players_can_move:
-            move = try_get_move_from_key(self.keys_pressed)
-            if move:
-                self.move_players(move)
+        pass
 
     def post_event_loop(self):
         if not self.model.map_won:
@@ -165,6 +162,12 @@ class MapView(View[MapViewParameters, MapViewModel]):
         for piece_type in [p for p in PIECE_DRAW_ORDER if p not in [PlayerPiece, CratePiece]]:
             for piece in self.grid.get_pieces_of_type(piece_type):
                 piece.draw(self.grid_layout.bounding_rect.topleft, self.square_size)
+
+    def post_animation_loop(self):
+        if self.model.players_can_move:
+            move = try_get_move_from_key(self.keys_pressed)
+            if move:
+                self.move_players(move)
 
     def draw_animated(self):
         for piece in self.grid.get_pieces_of_type(CratePiece):

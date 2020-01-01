@@ -238,26 +238,7 @@ class StartView(View[StartViewParameters, StartViewModel]):
         pass
 
     def pre_event_loop(self):
-        if self.animator.animating():
-            return
-
-        if self.position_won_time:
-            now = time()
-            if now - self.position_won_time >= FINISHED_WAIT_SECONDS:
-                self.position_won_time = False
-                self.undo_manager.undo(START_MENU_POSITION)
-                self.model.player_loop_index = 0
-                self.position_start_time = time()
-        elif self.position_start_time:
-            now = time()
-            if now - self.position_start_time >= START_WAIT_SECONDS:
-                self.position_start_time = None
-        elif self.model.player_loop_index == len(self.model.player_loop) - 1:
-            self.position_won_time = time()
-        else:
-            # Next position for the player...
-            self.model.player_loop_index += 1
-            self.model.player_piece.move(self.model.player_loop[self.model.player_loop_index])
+        pass
 
     def post_event_loop(self):
         pass
@@ -301,6 +282,28 @@ class StartView(View[StartViewParameters, StartViewModel]):
         draw_text_with_border(self.resources.title_font, START_VIEW_TITLE, TITLE_COLOUR,
                               self.title_layout.bounding_rect, TITLE_SHADOW_COLOUR,
                               self.title_layout.bounding_rect.width / 120)
+
+    def post_animation_loop(self):
+        if self.animator.animating():
+            return
+
+        if self.position_won_time:
+            now = time()
+            if now - self.position_won_time >= FINISHED_WAIT_SECONDS:
+                self.position_won_time = False
+                self.undo_manager.undo(START_MENU_POSITION)
+                self.model.player_loop_index = 0
+                self.position_start_time = time()
+        elif self.position_start_time:
+            now = time()
+            if now - self.position_start_time >= START_WAIT_SECONDS:
+                self.position_start_time = None
+        elif self.model.player_loop_index == len(self.model.player_loop) - 1:
+            self.position_won_time = time()
+        else:
+            # Next position for the player...
+            self.model.player_loop_index += 1
+            self.model.player_piece.move(self.model.player_loop[self.model.player_loop_index])
 
     def draw_animated(self):
         for piece in self.grid.get_pieces_of_type(CratePiece):

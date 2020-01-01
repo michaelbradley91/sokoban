@@ -87,6 +87,14 @@ class View(UsesAppContainer, ABC, Generic[T, S]):
         pass
 
     @abstractmethod
+    def post_animation_loop(self):
+        """
+        Do computations post animations. This should be done minimally to avoid stuttering animations,
+        but can be used to smooth animations that were about to stop
+        """
+        pass
+
+    @abstractmethod
     def draw_animated(self):
         """
         Draw the animated components of the view.

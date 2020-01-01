@@ -16,9 +16,8 @@ ANIMATION_SPEED = 100
 
 
 class PlayerAnimation(LinearAnimation):
-    def __init__(self, number_of_images: int, start: Coordinate, finish: Coordinate,
-                 finished: Callable[[LinearAnimation], None]):
-        super().__init__(start, finish, number_of_images, WALK_SPEED, ANIMATION_SPEED, finished)
+    def __init__(self, number_of_images: int, start: Coordinate, finish: Coordinate):
+        super().__init__(start, finish, number_of_images, WALK_SPEED, ANIMATION_SPEED)
 
 
 class PlayerPiece(Piece):
@@ -54,8 +53,10 @@ class PlayerPiece(Piece):
         if not super().move(coordinate):
             return False
 
-        self.animation = PlayerAnimation(len(self.resources.player[self.direction]), old_coordinate, coordinate,
-                                         self.animation_finished)
+        if self.animation and isinstance(self.animation, PlayerAnimation) and old_direction == new_direction:
+            self.animation.extend(1, WALK_SPEED)
+        else:
+            self.animation = PlayerAnimation(len(self.resources.player[self.direction]), old_coordinate, coordinate)
         self.animator.add_animation(self.animation)
 
         return True
@@ -64,24 +65,11 @@ class PlayerPiece(Piece):
         self.animation = StaticAnimation(len(self.resources.player[self.direction]), ANIMATION_SPEED)
         self.animator.add_animation(self.animation)
 
-    def animation_finished(self, animation: LinearAnimation):
-        """
-        Check if the user is still holding down the animation button.
-        If so, continue the animation
-        :param animation: the animation to continue
-        :return: nothing
-        """
-        direction = coordinate_change_to_direction(animation.finish_position - animation.start_position)
-        current_direction = try_get_move_from_key(self.keys_pressed)
-        if direction == current_direction:
-            animation.extend(1, WALK_SPEED)
-
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
         if not self.animation or self.animation.is_finished:
-            print("Not animated!")
+            self.animation = None
             self.resources.player[self.direction][0].draw(self.get_rect_at_coordinate(grid_offset, square_size))
         elif isinstance(self.animation, PlayerAnimation):
-            print("Animated!")
             animation_status = self.animation.calculate(grid_offset, square_size)
             self.resources.player[self.direction][animation_status.image_index].draw(animation_status.rect)
         elif isinstance(self.animation, StaticAnimation):

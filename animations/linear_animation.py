@@ -29,8 +29,7 @@ class LinearAnimation(Animation):
     changes and the time to spend getting from start to finish,
     this object can report on what to show at each instance, and when it is finished.
     """
-    def __init__(self, start: Coordinate, finish: Coordinate, number_of_images: int, travel_time: int,
-                 image_time: int, finished: Optional[Callable[["LinearAnimation"], None]]):
+    def __init__(self, start: Coordinate, finish: Coordinate, number_of_images: int, travel_time: int, image_time: int):
         """
         :param start: where the image should begin moving from
         :param finish: where the image should move to
@@ -53,10 +52,6 @@ f
             image_index=0,
             position=(self.__start.x, self.__start.y)
         )
-        if not finished:
-            self.__finished: Callable[["LinearAnimation"], None] = lambda l: None
-        else:
-            self.__finished: Callable[["LinearAnimation"], None] = finished
 
     def start(self):
         pass
@@ -115,7 +110,6 @@ f
                 image_index=0,
                 finished=True
             )
-            self.__finished(self)
             return self.__status
 
         # Calculate the distance moved

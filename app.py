@@ -283,6 +283,9 @@ class App(AppContainer, Navigator):
     def draw_static(self):
         self.__current_view.draw_static()
 
+    def post_animation_loop(self):
+        self.__current_view.post_animation_loop()
+
     def draw_animated(self):
         self.__current_view.draw_animated()
 
@@ -316,6 +319,7 @@ class App(AppContainer, Navigator):
             if elapsed_ticks > 20:
                 total += 1
             self.animator.run_animations(elapsed_ticks)
+            self.post_animation_loop()
             self.draw_animated()
             pygame.display.flip()
 
