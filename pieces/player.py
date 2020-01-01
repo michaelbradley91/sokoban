@@ -4,7 +4,7 @@ from animations.animation import Animation
 from animations.linear_animation import LinearAnimation
 from animations.static_animation import StaticAnimation
 from app_container import AppContainer
-from constants.direction import Direction, coordinate_change_to_direction
+from constants.direction import Direction, coordinate_change_to_direction, try_get_move_from_key
 from coordinate import Coordinate
 from grid import Grid
 from pieces.piece import Piece
@@ -18,7 +18,7 @@ ANIMATION_SPEED = 100
 class PlayerAnimation(LinearAnimation):
     def __init__(self, number_of_images: int, start: Coordinate, finish: Coordinate,
                  finished: Callable[[LinearAnimation], None]):
-        super().__init__(start.to_float(), finish.to_float(), number_of_images, WALK_SPEED, ANIMATION_SPEED, finished)
+        super().__init__(start, finish, number_of_images, WALK_SPEED, ANIMATION_SPEED, finished)
 
 
 class PlayerPiece(Piece):
@@ -54,7 +54,8 @@ class PlayerPiece(Piece):
         if not super().move(coordinate):
             return False
 
-        self.animation = PlayerAnimation(len(self.resources.player[self.direction]), old_coordinate, coordinate, lambda _: None)
+        self.animation = PlayerAnimation(len(self.resources.player[self.direction]), old_coordinate, coordinate,
+                                         self.animation_finished)
         self.animator.add_animation(self.animation)
 
         return True
@@ -62,6 +63,18 @@ class PlayerPiece(Piece):
     def run_on_the_spot(self):
         self.animation = StaticAnimation(len(self.resources.player[self.direction]), ANIMATION_SPEED)
         self.animator.add_animation(self.animation)
+
+    def animation_finished(self, animation: LinearAnimation):
+        """
+        Check if the user is still holding down the animation button.
+        If so, continue the animation
+        :param animation: the animation to continue
+        :return: nothing
+        """
+        direction = coordinate_change_to_direction(animation.finish_position - animation.start_position)
+        current_direction = try_get_move_from_key(self.keys_pressed)
+        if direction == current_direction:
+            animation.extend(1, WALK_SPEED)
 
     def draw(self, grid_offset: Tuple[int, int], square_size: int):
         if not self.animation or self.animation.is_finished:
