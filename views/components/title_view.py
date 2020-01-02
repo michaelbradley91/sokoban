@@ -7,7 +7,7 @@ from layouts.margin_layout import MarginLayout
 from views.components.component_view import ComponentView
 
 
-class TitleView(ComponentView):
+class TitleView(ComponentView[BasicLayout]):
     """
     A view for drawing the title text.
     """
