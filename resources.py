@@ -3,7 +3,7 @@ import sys
 from typing import Dict, List, Tuple, Optional
 
 import pygame
-from pygame import SurfaceType
+from pygame import SurfaceType, Rect
 from pygame.mixer import SoundType
 
 from constants.direction import Direction
@@ -53,6 +53,7 @@ class Resources:
         self.__tiles2 = TileSet(load_texture_to_surface(find_resource("resources/sokoban_tilesheet2.png")), (64, 64),
                                 tiles_wide=6, tiles_high=6)
         self.__tiles3 = TileSet(load_texture_to_surface(find_resource("resources/sokoban_tilesheet3.png")), (128, 128))
+        self.__keyboard_tiles = TileSet(load_texture_to_surface(find_resource("resources/keys.png")), (1, 1))
 
         # Tiles
         self.__crate = Tile(self.tiles1, Coordinate(1, 0))
@@ -61,6 +62,7 @@ class Resources:
         self.__wall = Tile(self.tiles2, Coordinate(1, 1))
         self.__menu_background = Tile(self.tiles2, Coordinate(0, 0))
         self.__player = self.__get_player_tiles()
+        self.__keyboard_key = self.__get_keyboard_tiles()
 
         # Sounds
         self.__crate_sound = pygame.mixer.Sound(find_resource("resources/crate_sound.wav"))
@@ -71,7 +73,12 @@ class Resources:
         # Fonts
         self.__title_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 128))
         self.__menu_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 24))
-        self.__you_win_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 32))
+        self.__wall_text_font = Font(pygame.font.Font(find_resource("resources/heygorgeous.ttf"), 32))
+        self.__you_win_font = self.__wall_text_font
+        self.__key_font = self.__wall_text_font
+        self.__keyboard_text_font = self.__wall_text_font
+        self.__arrows_font = Font(pygame.font.Font(find_resource("resources/M2PBold-XJDa.ttf"), 24))
+        self.__symbols_font = Font(pygame.font.Font(find_resource("resources/Quivira-A8VL.ttf"), 24))
 
         # Display
         self.display = display
@@ -81,12 +88,18 @@ class Resources:
         On some events such as a window resize, the textures must be reloaded.
         This method reloads all textures immediately.
         """
+        # Tiles
         self.tiles1.reload()
         self.tiles2.reload()
         self.tiles3.reload()
+        self.__keyboard_tiles.reload()
+
+        # Fonts
         self.title_font.reload()
         self.menu_font.reload()
-        self.you_win_font.reload()
+        self.wall_text_font.reload()
+        self.arrows_font.reload()
+        self.symbols_font.reload()
 
     @property
     def tiles1(self) -> TileSet:
@@ -101,6 +114,10 @@ class Resources:
         return self.__tiles3
 
     @property
+    def keyboard_tiles(self) -> TileSet:
+        return self.__keyboard_tiles
+
+    @property
     def title_font(self):
         return self.__title_font
 
@@ -109,8 +126,24 @@ class Resources:
         return self.__menu_font
 
     @property
+    def wall_text_font(self):
+        return self.__wall_text_font
+
+    @property
     def you_win_font(self) -> Font:
         return self.__you_win_font
+
+    @property
+    def keyboard_text_font(self) -> Font:
+        return self.__keyboard_text_font
+
+    @property
+    def arrows_font(self) -> Font:
+        return self.__arrows_font
+
+    @property
+    def symbols_font(self) -> Font:
+        return self.__symbols_font
 
     @property
     def crate_sound(self) -> SoundType:
@@ -134,23 +167,35 @@ class Resources:
 
     @property
     def crate(self) -> Tile:
-        return Tile(self.tiles1, Coordinate(1, 0))
+        return self.__crate
 
     @property
     def floor(self) -> Tile:
-        return Tile(self.tiles2, Coordinate(1, 3))
+        return self.__floor
 
     @property
     def goal(self) -> Tile:
-        return Tile(self.tiles1, Coordinate(1, 3))
+        return self.__goal
 
     @property
     def wall(self) -> Tile:
-        return Tile(self.tiles2, Coordinate(1, 1))
+        return self.__wall
 
     @property
     def player(self) -> Dict[Direction, List[Tile]]:
         return self.__player
+
+    @property
+    def keyboard_key(self) -> Dict[int, Tile]:
+        return self.__keyboard_key
+
+    def __get_keyboard_tiles(self) -> Dict[int, Tile]:
+        # Load all the keyboard tiles into a dictionary based on width
+        return {
+            1: Tile(self.keyboard_tiles, Rect((0, 0), (128, 128))),
+            2: Tile(self.keyboard_tiles, Rect((128, 0), (256, 128))),
+            3: Tile(self.keyboard_tiles, Rect((384, 0), (384, 128))),
+        }
 
     def __get_player_tiles(self) -> Dict[Direction, List[Tile]]:
         # Load all the player tiles into a dictionary based on direction

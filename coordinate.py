@@ -15,6 +15,14 @@ class Coordinate:
     def y(self):
         return self.__y
 
+    def scalar_multiply(self, multiplier: int) -> "Coordinate":
+        """
+        Multiply the coordinate by a scalar value.
+        :param multiplier: the multiplier
+        :return: (m * x, m * y)
+        """
+        return Coordinate(self.x * multiplier, self.y * multiplier)
+
     def to_float(self) -> Tuple[float, float]:
         return float(self.x), float(self.y)
 

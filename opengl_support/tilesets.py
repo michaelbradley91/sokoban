@@ -1,4 +1,4 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Union
 
 import pygame
 from pygame.rect import Rect
@@ -35,19 +35,22 @@ class TileSet(Texture):
     def tile_size(self) -> Tuple[int, int]:
         return self.__tile_size
 
+    def tile_coordinate_to_rect(self, tile_coordinate: Coordinate):
+        """
+        Convert a tile coordinate to its rectangle
+        :param tile_coordinate: the coordinate for the tile
+        :return: the sub-surface rectangle
+        """
+        return Rect((self.tile_size[0] * tile_coordinate.x, self.tile_size[1] * tile_coordinate.y), self.tile_size)
+
     def draw_tile(self, rect: Rect, tile_coordinate: Coordinate):
         """
         Draw a specific tile from the tile set
         :param rect: the rectangle in which to draw the tile
         :param tile_coordinate: the coordinate of the tile
         :return: nothing
-        Raises a ValueError if the tile coordinate is out of bounds
         """
-        if tile_coordinate.x < 0 or tile_coordinate.y < 0 or \
-                tile_coordinate.x > self.__tiles_wide or tile_coordinate.y > self.__tiles_high:
-            raise ValueError("Invalid tile index")
-
-        sub_rect = Rect((self.tile_size[0] * tile_coordinate.x, self.tile_size[1] * tile_coordinate.y), self.tile_size)
+        sub_rect = self.tile_coordinate_to_rect(tile_coordinate)
         super().draw_sub_rectangle(rect, sub_rect)
 
 
@@ -55,9 +58,12 @@ class Tile(Drawable):
     """
     A singled out tile from a tile set to draw.
     """
-    def __init__(self, tile_set: TileSet, tile_coordinate: Coordinate):
+    def __init__(self, tile_set: TileSet, tile: Union[Coordinate, Rect]):
         self.__tile_set = tile_set
-        self.__tile_coordinate = tile_coordinate
+        if isinstance(tile, Coordinate):
+            self.__tile_rect = tile_set.tile_coordinate_to_rect(tile)
+        else:
+            self.__tile_rect = tile
 
     @property
     def tile_set(self):
@@ -76,4 +82,4 @@ class Tile(Drawable):
         :param rect: the rectangle to fill
         :return: nothing
         """
-        self.__tile_set.draw_tile(rect, self.__tile_coordinate)
+        self.__tile_set.draw_sub_rectangle(rect, self.__tile_rect)

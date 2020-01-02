@@ -4,21 +4,19 @@ from pygame.event import EventType
 
 from app_container import AppContainer
 from layouts.layout import BasicLayout
-from views.view import View, ViewModel
+from views.view import ViewModel, View
 
 
-class OptionsViewParameters:
+class GraphicsViewParameters:
     pass
 
 
-class OptionsViewModel(ViewModel[OptionsViewParameters]):
-    pass
+class GraphicsViewModel(ViewModel[GraphicsViewParameters]):
+    def __init__(self, view: "GraphicsView"):
+        super().__init__(view)
 
 
-class OptionsView(View[OptionsViewParameters, OptionsViewModel]):
-    """
-    The options screen that allows the modification of game settings
-    """
+class GraphicsView(View[GraphicsViewParameters, GraphicsViewModel]):
     def __init__(self, app_container: AppContainer, layout: BasicLayout):
         super().__init__(app_container, layout)
 
