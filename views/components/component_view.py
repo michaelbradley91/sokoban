@@ -30,5 +30,9 @@ class ComponentView(UsesAppContainer, ABC, Generic[T]):
         return self.__app_container
 
     @abstractmethod
-    def draw(self):
+    def draw_static(self):
+        pass
+
+    @abstractmethod
+    def draw_animated(self):
         pass

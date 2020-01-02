@@ -26,7 +26,10 @@ class TitleView(ComponentView[BasicLayout]):
 
         self.layout.set_layout(margin_layout)
 
-    def draw(self):
+    def draw_static(self):
         draw_text_with_border(self.resources.title_font, START_VIEW_TITLE, TITLE_COLOUR,
                               self.title_layout.bounding_rect, TITLE_SHADOW_COLOUR,
                               self.title_layout.bounding_rect.width / 120)
+
+    def draw_animated(self):
+        pass
