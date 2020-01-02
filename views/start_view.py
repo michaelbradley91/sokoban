@@ -10,6 +10,7 @@ from app_container import AppContainer
 from constants.colours import MENU_TEXT_COLOUR, TITLE_COLOUR, BACKGROUND_COLOUR, MENU_SELECTED_TEXT_COLOUR, \
     TITLE_SHADOW_COLOUR
 from constants.direction import Direction
+from constants.numbers import MENU_TEXT_SELECTED_MARGIN, MENU_TEXT_MARGIN
 from constants.text import START_VIEW_START, START_VIEW_OPTIONS, START_VIEW_HELP, START_VIEW_QUIT, START_VIEW_TITLE, \
     draw_text_with_border
 from coordinate import Coordinate
@@ -25,6 +26,7 @@ from pieces.piece_draw_order import PIECE_DRAW_ORDER
 from pieces.player import PlayerPiece
 from pieces.static import StaticPiece
 from pieces.wall import WallPiece
+from views.components.title_view import TitleView
 from views.view import ViewModel, View
 
 
@@ -179,7 +181,7 @@ class StartView(View[StartViewParameters, StartViewModel]):
 
         self.menu_layouts: Dict[MenuOption, BasicLayout] = {m: BasicLayout() for m in MenuOption}
         self.menu_margin_layouts: Dict[MenuOption, MarginLayout] = {m: MarginLayout((0, 1 / 5)) for m in MenuOption}
-        self.title_layout = BasicLayout()
+        self.title_view: Optional[TitleView] = None
         self.grid_layout = GridLayout(width=GRID_WIDTH, height=GRID_HEIGHT)
         self.square_layout = BasicLayout()
         self.position_won_time = None
@@ -187,14 +189,10 @@ class StartView(View[StartViewParameters, StartViewModel]):
 
     def init(self):
         # Add the title
-        surface = self.resources.title_font.get_surface(START_VIEW_TITLE, TITLE_COLOUR)
-        aspect_layout = AspectLayout((surface.get_width(), surface.get_height()))
-        aspect_layout.set_layout(self.title_layout)
-
-        margin_layout = MarginLayout((0, 1 / 20))
-        margin_layout.set_layout(aspect_layout)
-
-        self.grid_layout.add_layout(margin_layout, Coordinate(0, 1), column_span=GRID_WIDTH, row_span=TITLE_HEIGHT)
+        title_container_layout = BasicLayout(identifier="title_layout")
+        self.title_view = TitleView(self.app_container, title_container_layout)
+        self.grid_layout.add_layout(title_container_layout, Coordinate(1, 1),
+                                    column_span=GRID_WIDTH - 2, row_span=TITLE_HEIGHT)
 
         # Build layouts to hold the menu text
         for i, m in MENU_OPTION_BY_INDEX.items():
@@ -245,9 +243,9 @@ class StartView(View[StartViewParameters, StartViewModel]):
     def draw_static(self):
         for m, margin_layout in self.menu_margin_layouts.items():
             if self.model.menu_option_selected == m:
-                margin_layout.set_margin((0, 1 / 7))
+                margin_layout.set_margin((0, MENU_TEXT_SELECTED_MARGIN))
             else:
-                margin_layout.set_margin((0, 1 / 5))
+                margin_layout.set_margin((0, MENU_TEXT_MARGIN))
             margin_layout.update_components()
 
         set_background_and_clear(BACKGROUND_COLOUR)
@@ -265,9 +263,7 @@ class StartView(View[StartViewParameters, StartViewModel]):
             self.resources.menu_font.draw_text(text, colour, layout.bounding_rect)
 
         # Draw the title
-        draw_text_with_border(self.resources.title_font, START_VIEW_TITLE, TITLE_COLOUR,
-                              self.title_layout.bounding_rect, TITLE_SHADOW_COLOUR,
-                              self.title_layout.bounding_rect.width / 120)
+        self.title_view.draw()
 
     def post_animation_loop(self):
         if self.animator.animating():

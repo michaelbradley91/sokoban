@@ -3,7 +3,7 @@ from pygame.rect import Rect
 
 from opengl_support.font import Font
 
-START_VIEW_TITLE = "↑Sokoban"
+START_VIEW_TITLE = "Sokoban"
 START_VIEW_START = "Start"
 START_VIEW_OPTIONS = "Options"
 START_VIEW_HELP = "Help"
