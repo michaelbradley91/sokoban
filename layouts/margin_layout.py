@@ -33,11 +33,10 @@ class MarginLayout(Layout):
     """
     A simple layout that places a percentage margin on each side of itself
     """
-
     def __init__(self, margin: Union[float, Tuple[float, float], Tuple[float, float, float, float]],
                  identifier: Optional[str] = None):
         super().__init__(identifier)
-
+        self.margin = margin
         self.left_margin = None
         self.top_margin = None
         self.right_margin = None
@@ -51,6 +50,7 @@ class MarginLayout(Layout):
         if any([m for m in translated_margin if m < 0]):
             raise ValueError("Invalid margins!")
 
+        self.margin = margin
         self.left_margin = translated_margin[0]
         self.top_margin = translated_margin[1]
         self.right_margin = translated_margin[2]

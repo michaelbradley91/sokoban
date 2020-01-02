@@ -8,7 +8,22 @@ from app_container import AppContainer, UsesAppContainer
 from layouts.layout import BasicLayout
 
 T = TypeVar('T')
-S = TypeVar('S')
+
+
+class ViewModel(Generic[T], UsesAppContainer):
+    def __init__(self, view: "View[T, ViewModel[T]]"):
+        self.view = view
+
+    @property
+    def app_container(self) -> AppContainer:
+        return self.view.app_container
+
+    @property
+    def parameters(self) -> T:
+        return self.view.parameters
+
+
+S = TypeVar('S', bound=ViewModel)
 
 
 class View(UsesAppContainer, ABC, Generic[T, S]):
@@ -101,16 +116,3 @@ class View(UsesAppContainer, ABC, Generic[T, S]):
         These should be drawn as quickly as possible to improve the accuracy of animation.
         """
         pass
-
-
-class ViewModel(Generic[T], UsesAppContainer):
-    def __init__(self, view: "View[T, ViewModel[T]]"):
-        self.view = view
-
-    @property
-    def app_container(self) -> AppContainer:
-        return self.view.app_container
-
-    @property
-    def parameters(self) -> T:
-        return self.view.parameters
