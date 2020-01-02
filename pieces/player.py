@@ -37,6 +37,9 @@ class PlayerPiece(Piece):
         return False
 
     def move(self, coordinate: Coordinate):
+        if coordinate == self.coordinate:
+            return False
+
         def set_direction(direction: Direction):
             self.direction = direction
 

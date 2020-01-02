@@ -1,14 +1,15 @@
 from enum import Enum
 from time import time
-from typing import List, Dict, Callable
+from typing import List, Dict, Callable, Optional
 
 import pygame
 from pygame.event import EventType
 
+from animations.preset_animation import PresetGridAnimationPlayer, PresetGridAnimation
 from app_container import AppContainer
 from constants.colours import MENU_TEXT_COLOUR, TITLE_COLOUR, BACKGROUND_COLOUR, MENU_SELECTED_TEXT_COLOUR, \
     TITLE_SHADOW_COLOUR
-from constants.direction import Direction, direction_to_coordinate
+from constants.direction import Direction
 from constants.text import START_VIEW_START, START_VIEW_OPTIONS, START_VIEW_HELP, START_VIEW_QUIT, START_VIEW_TITLE, \
     draw_text_with_border
 from coordinate import Coordinate
@@ -73,8 +74,7 @@ class StartViewModel(ViewModel[StartViewParameters]):
 
         self.resources.crate_sound.set_volume(0)
 
-        self.player_loop: List[Coordinate] = []
-        self.player_loop_index: int = 0
+        self.player_animation_player: Optional[PresetGridAnimationPlayer] = None
 
         self.load_grid()
         self.undo_manager.enabled = True
@@ -84,8 +84,8 @@ class StartViewModel(ViewModel[StartViewParameters]):
         self.grid.add_outer_wall()
 
         # Player
-        self.player_loop.append(Coordinate(MENU_OPTION_LEFT - 2, menu_option_position(0)))
-        self.grid.add_piece(self.player_piece, self.player_loop[0])
+        player_animation = PresetGridAnimation(Coordinate(MENU_OPTION_LEFT - 2, menu_option_position(0)))
+        self.grid.add_piece(self.player_piece, player_animation.steps[0])
 
         # Title bricks
         for y in range(1, TITLE_HEIGHT + 1):
@@ -120,44 +120,30 @@ class StartViewModel(ViewModel[StartViewParameters]):
 
         # Player loop
         # Around the crate
-        self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.left))
-        self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
+        player_animation.append_steps(Direction.left, Direction.down)
 
         # Slide around...
         final_i = list(range(1, len(MENU_OPTION_BY_INDEX), 2))[-1]
         for i in list(range(1, len(MENU_OPTION_BY_INDEX), 2)):
             if (i + 1) % 4 == 0:
                 # Moving to the left
-                cs = [direction_to_coordinate(Direction.left) for _ in range(MENU_OPTION_WIDTH + 3)]
-                for c in cs:
-                    self.player_loop.append(self.player_loop[-1] + c)
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.up))
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.left))
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
+                player_animation.append_step(Direction.left, repeat=MENU_OPTION_WIDTH + 3)
+                player_animation.append_steps(Direction.up, Direction.left, Direction.down, Direction.down)
+
                 if i != final_i:
-                    self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
-                    self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.left))
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
+                    player_animation.append_steps(Direction.down, Direction.down)
+                player_animation.append_steps(Direction.left, Direction.down)
+
                 if i == final_i:
                     # Finish by sliding it over to the right
-                    cs = [direction_to_coordinate(Direction.right) for _ in range(MENU_OPTION_WIDTH + 4)]
-                    for c in cs:
-                        self.player_loop.append(self.player_loop[-1] + c)
+                    player_animation.append_step(Direction.right, repeat=MENU_OPTION_WIDTH + 4)
             else:
                 # Moving to the right
-                cs = [direction_to_coordinate(Direction.right) for _ in range(MENU_OPTION_WIDTH + 3)]
-                for c in cs:
-                    self.player_loop.append(self.player_loop[-1] + c)
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.up))
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.right))
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.right))
-                self.player_loop.append(self.player_loop[-1] + direction_to_coordinate(Direction.down))
+                player_animation.append_step(Direction.right, repeat=MENU_OPTION_WIDTH + 3)
+                player_animation.append_steps(Direction.up, Direction.right, Direction.down, Direction.down,
+                                              Direction.down, Direction.down, Direction.right, Direction.down)
+
+        self.player_animation_player = player_animation.create_player()
 
     def go_down_one_menu_option(self):
         """
@@ -292,18 +278,17 @@ class StartView(View[StartViewParameters, StartViewModel]):
             if now - self.position_won_time >= FINISHED_WAIT_SECONDS:
                 self.position_won_time = False
                 self.undo_manager.undo(START_MENU_POSITION)
-                self.model.player_loop_index = 0
+                self.model.player_animation_player.reset()
                 self.position_start_time = time()
         elif self.position_start_time:
             now = time()
             if now - self.position_start_time >= START_WAIT_SECONDS:
                 self.position_start_time = None
-        elif self.model.player_loop_index == len(self.model.player_loop) - 1:
+        elif self.model.player_animation_player.is_finished:
             self.position_won_time = time()
         else:
             # Next position for the player...
-            self.model.player_loop_index += 1
-            self.model.player_piece.move(self.model.player_loop[self.model.player_loop_index])
+            self.model.player_piece.move(self.model.player_animation_player.play_next_step())
 
     def draw_animated(self):
         for piece in self.grid.get_pieces_of_type(CratePiece):

@@ -84,15 +84,22 @@ class PresetGridAnimation:
         """ Alias for insert_position with no index """
         self.insert_position(position)
 
-    def append_step(self, direction: Direction, amount: int = 1):
+    def append_steps(self, *directions: Direction):
+        """ Add several directional steps at once """
+        for direction in directions:
+            self.append_step(direction)
+
+    def append_step(self, direction: Direction, *, amount: int = 1, repeat: int = 1):
         """
         Append a new step by moving the current position in the given direction by the amount specified.
         :param direction:
         :param amount: the amount to move by. Defaults to 1
+        :param repeat: the number of times to repeat the step. Defaults to 1
         :return: nothing
         """
         coordinate_change = direction_to_coordinate(direction).scalar_multiply(amount)
-        self.__steps.append(self.__steps[-1] + coordinate_change)
+        for r in range(repeat):
+            self.__steps.append(self.__steps[-1] + coordinate_change)
 
     def create_player(self) -> PresetGridAnimationPlayer:
         """
