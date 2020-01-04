@@ -68,8 +68,8 @@ class StartViewModel(ViewModel[StartViewParameters]):
                                                          Coordinate(x, y), column_span=MENU_OPTION_WIDTH)
             self.menu_view_model.add_menu_item(menu_item_view_model)
 
-        self.menu_items[0].highlighted = True
         self.menu_index_selected: int = 0
+        self.menu_items[self.menu_index_selected].highlighted = True
 
         self.player_piece = PlayerPiece(self.grid, self.app_container)
         self.player_piece.direction = Direction.left
@@ -163,10 +163,11 @@ class StartView(View[StartViewParameters, StartViewModel]):
         super().__init__(app_container, layout)
 
         from views.map_view import MapView, MapViewParameters
+        from views.options_view import OptionsView, OptionsViewParameters
 
         self.menu_actions: Dict[int, Callable] = {
             0: lambda: self.navigator.go_to_view(MapView, MapViewParameters(map_index=0)),
-            1: lambda: self.navigator.go_to_view(MapView, MapViewParameters(map_index=0)),
+            1: lambda: self.navigator.go_to_view(OptionsView, OptionsViewParameters()),
             2: lambda: self.navigator.go_to_view(MapView, MapViewParameters(map_index=0)),
             3: lambda: self.navigator.quit()
         }

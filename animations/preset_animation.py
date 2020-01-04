@@ -89,6 +89,16 @@ class PresetGridAnimation:
         for direction in directions:
             self.append_step(direction)
 
+    def append_still(self, repeat: int = 1):
+        """
+        Append a step that has no movement.
+        :param repeat: the number of times to stay still
+        :return: nothing
+        """
+        coordinate = self.__steps[-1]
+        for r in range(repeat):
+            self.__steps.append(coordinate)
+
     def append_step(self, direction: Direction, *, amount: int = 1, repeat: int = 1):
         """
         Append a new step by moving the current position in the given direction by the amount specified.

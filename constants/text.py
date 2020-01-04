@@ -9,6 +9,11 @@ START_VIEW_OPTIONS = "Options"
 START_VIEW_HELP = "Help"
 START_VIEW_QUIT = "Quit"
 
+OPTIONS_VIEW_CONTROLS = "Controls"
+OPTIONS_VIEW_SOUND = "Sound"
+OPTIONS_VIEW_GRAPHICS = "Graphics"
+OPTIONS_VIEW_BACK = "Back"
+
 # Map view
 MAP_VIEW_YOU_WIN = "You Win!"
 
