@@ -192,9 +192,10 @@ class OptionsView(View[OptionsViewParameters, OptionsViewModel]):
         super().__init__(app_container, layout)
 
         from views.start_view import StartView, StartViewParameters
+        from views.controls_view import ControlsView, ControlsViewParameters
 
         self.menu_actions: Dict[int, Callable] = {
-            0: lambda: self.navigator.go_to_view(StartView, StartViewParameters()),
+            0: lambda: self.navigator.go_to_view(ControlsView, ControlsViewParameters()),
             1: lambda: self.navigator.go_to_view(StartView, StartViewParameters()),
             2: lambda: self.navigator.go_to_view(StartView, StartViewParameters()),
             3: lambda: self.navigator.go_to_view(StartView, StartViewParameters())
@@ -227,6 +228,8 @@ class OptionsView(View[OptionsViewParameters, OptionsViewModel]):
         pass
 
     def on_events(self, events: List[EventType]):
+        from views.start_view import StartView, StartViewParameters
+
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:

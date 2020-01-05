@@ -91,7 +91,7 @@ class MenuTextItemView(ComponentView[MenuTextItemViewModel, GridLayout]):
         self.resources.menu_font.draw_text(self.text, colour, self.__layout.bounding_rect)
 
     def get_margin(self):
-        return MENU_TEXT_SELECTED_MARGIN if self.model.highlighted else MENU_TEXT_MARGIN
+        return 0, MENU_TEXT_SELECTED_MARGIN if self.model.highlighted else MENU_TEXT_MARGIN
 
     def draw_animated(self):
         pass
